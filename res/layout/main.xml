@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+
+<LinearLayout 
+    android:orientation="horizontal"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    >
+<Button android:id="@+id/prevBtn" 
+    android:layout_width="wrap_content" 
+    android:layout_height="fill_parent" 
+    android:text="Prev"
+    />
+<Button android:id="@+id/pauseBtn" 
+    android:layout_width="wrap_content" 
+    android:layout_height="fill_parent" 
+    android:text="Pause"
+    />
+<Button android:id="@+id/stopBtn" 
+    android:layout_width="wrap_content" 
+    android:layout_height="fill_parent" 
+    android:text="Stop"
+    />
+<Button android:id="@+id/nextBtn" 
+    android:layout_width="wrap_content" 
+    android:layout_height="fill_parent" 
+    android:text="Next"
+    />
+</LinearLayout>
+
+<LinearLayout 
+    android:orientation="horizontal"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    >
+<TextView android:id="@+id/curSongTextView" 
+    android:layout_width="wrap_content" 
+    android:layout_height="fill_parent" 
+    android:text="Current song"
+    />
+</LinearLayout>
+
+</LinearLayout>

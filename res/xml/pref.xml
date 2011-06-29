@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+  xmlns:android="http://schemas.android.com/apk/res/android">
+
+<EditTextPreference android:title="Remote address" android:key="RemoteAddr"></EditTextPreference>
+<EditTextPreference android:title="Remote port" android:key="RemotePort" android:defaultValue="19792"></EditTextPreference>
+</PreferenceScreen>
