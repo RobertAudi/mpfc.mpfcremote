@@ -26,6 +26,26 @@ public class RemotePlayer {
 		send("pause\n");
 	}
 	
+	public void stop()
+	{
+		send("stop\n");
+	}
+	
+	public void next()
+	{
+		send("next\n");
+	}
+	
+	public void prev()
+	{
+		send("prev\n");
+	}
+	
+	public void timeBack()
+	{
+		send("time_back\n");
+	}
+	
 	private void send(String s)
 	{
 		try

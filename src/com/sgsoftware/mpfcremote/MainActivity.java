@@ -21,6 +21,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
         setContentView(R.layout.main);
 
 		((Button)findViewById(R.id.pauseBtn)).setOnClickListener(this);
+		((Button)findViewById(R.id.stopBtn)).setOnClickListener(this);
+		((Button)findViewById(R.id.nextBtn)).setOnClickListener(this);
+		((Button)findViewById(R.id.prevBtn)).setOnClickListener(this);
+		((Button)findViewById(R.id.backBtn)).setOnClickListener(this);
 
 		tryConnect();
     }
@@ -56,6 +60,18 @@ public class MainActivity extends Activity implements View.OnClickListener {
 		case R.id.pauseBtn:
 			m_player.pause();
 			break;
+		case R.id.stopBtn:
+			m_player.stop();
+			break;
+		case R.id.nextBtn:
+			m_player.next();
+			break;
+		case R.id.prevBtn:
+			m_player.prev();
+			break;
+		case R.id.backBtn:
+			m_player.timeBack();
+			break;
 		}
 	}
 
@@ -82,6 +98,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 		findViewById(R.id.pauseBtn).setEnabled(enabled);
 		findViewById(R.id.prevBtn).setEnabled(enabled);
 		findViewById(R.id.stopBtn).setEnabled(enabled);
+		findViewById(R.id.backBtn).setEnabled(enabled);
 		if (enabled) {
 			((TextView)findViewById(R.id.curSongTextView)).setText("Current song");
 		}
