@@ -95,6 +95,11 @@ public class RemotePlayer {
 		send("time_back\n");
 	}
 
+	public void play(int pos)
+	{
+		send(String.format("play %d\n", pos));
+	}
+
 	private void syncPlaylist()
 	{
 		if (!send("get_playlist\n"))

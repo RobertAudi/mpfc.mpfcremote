@@ -15,8 +15,10 @@ import android.widget.Button;
 import android.widget.SimpleAdapter;
 import android.widget.ArrayAdapter;
 import android.widget.Adapter;
+import android.widget.AdapterView;
 
-public class MainActivity extends Activity implements View.OnClickListener {
+public class MainActivity extends Activity 
+	implements View.OnClickListener, AdapterView.OnItemClickListener {
 	private RemotePlayer m_player;
 
     /** Called when the activity is first created. */
@@ -30,6 +32,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 		((Button)findViewById(R.id.nextBtn)).setOnClickListener(this);
 		((Button)findViewById(R.id.prevBtn)).setOnClickListener(this);
 		((Button)findViewById(R.id.backBtn)).setOnClickListener(this);
+		((ListView)findViewById(R.id.playListView)).setOnItemClickListener(this);
 
 		tryConnect();
     }
@@ -80,6 +83,12 @@ public class MainActivity extends Activity implements View.OnClickListener {
 		}
 	}
 
+	@Override
+	public void onItemClick(AdapterView<?> a, View v, int position, long id) {
+		if (m_player != null)
+			m_player.play(position);
+	}
+	
 	private void tryConnect() {
 		m_player = null;
 
