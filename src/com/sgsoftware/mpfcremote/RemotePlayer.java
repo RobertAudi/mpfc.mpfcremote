@@ -80,11 +80,6 @@ public class RemotePlayer {
 		send("pause\n");
 	}
 	
-	public void stop()
-	{
-		send("stop\n");
-	}
-	
 	public void next()
 	{
 		send("next\n");

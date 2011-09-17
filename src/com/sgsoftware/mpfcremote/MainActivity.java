@@ -65,9 +65,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
 		case R.id.pauseBtn:
 			m_player.pause();
 			break;
-		case R.id.stopBtn:
-			m_player.stop();
-			break;
 		case R.id.nextBtn:
 			m_player.next();
 			break;
