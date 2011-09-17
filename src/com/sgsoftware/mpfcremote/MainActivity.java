@@ -106,7 +106,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
 		findViewById(R.id.backBtn).setEnabled(enabled);
 		if (enabled) {
 			RemotePlayer.CurSong curSong = m_player.getCurSong();
-			((TextView)findViewById(R.id.curSongTextView)).setText(curSong == null ? "" : curSong.title);
+			((TextView)findViewById(R.id.curSongTextView)).setText(curSong == null ? "" :
+				String.format("%d. %s", curSong.posInList + 1, curSong.title));
+			((TextView)findViewById(R.id.curTimeTextView)).setText(curSong == null ? "" :
+				String.format("%d:%02d / %d:%02d", curSong.curPos / 60, curSong.curPos % 60,
+					curSong.length / 60, curSong.length % 60));
 
 			ListView playList = (ListView)findViewById(R.id.playListView);
 			ArrayAdapter<String> adapter = 

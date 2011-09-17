@@ -46,7 +46,7 @@ public class RemotePlayer {
 	}
 
 	private CurSong m_curSong;
-	private /*ArrayList<HashMap<String,String>>*/ArrayList<String> m_playList;
+	private ArrayList<String> m_playList;
 	
 	public RemotePlayer(String addr, int port) 
 			throws java.net.UnknownHostException, java.io.IOException
@@ -70,7 +70,7 @@ public class RemotePlayer {
 		return m_curSong;
 	}
 
-	public /*ArrayList<HashMap<String, String>>*/ArrayList<String> getPlayList()
+	public ArrayList<String> getPlayList()
 	{
 		return m_playList;
 	}
@@ -134,7 +134,6 @@ public class RemotePlayer {
 
 	private void parsePlaylist(String s)
 	{
-		//m_playList = new ArrayList<HashMap<String,String>>();
 		m_playList = new ArrayList<String>();
 
 		try
@@ -143,11 +142,7 @@ public class RemotePlayer {
 			for ( int i = 0; i < js.length(); i++ )
 			{
 				JSONObject obj = js.getJSONObject(i);
-
-				HashMap<String, String> m = new HashMap<String, String>();
-				m.put("title", obj.getString("title"));
-				m.put("length", Integer.toString(obj.getInt("length")));
-				m_playList.add(obj.getString("title"));
+				m_playList.add(String.format("%d. %s", i + 1, obj.getString("title")));
 			}
 		}
 		catch (org.json.JSONException e)

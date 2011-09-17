@@ -22,6 +22,18 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     >
+<TextView android:id="@+id/curTimeTextView" 
+    android:layout_width="wrap_content" 
+    android:layout_height="fill_parent" 
+    android:text=""
+    />
+</LinearLayout>
+
+<LinearLayout 
+    android:orientation="horizontal"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    >
 <Button android:id="@+id/prevBtn" 
     android:layout_width="wrap_content" 
     android:layout_height="fill_parent" 
