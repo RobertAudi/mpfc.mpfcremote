@@ -48,7 +48,8 @@ public class RemotePlayer {
 	private CurSong m_curSong;
 	private ArrayList<String> m_playList;
 	
-	public RemotePlayer(String addr, int port) 
+	public RemotePlayer(String addr, int port,
+						INotificationHandler notificationHandler) 
 			throws java.net.UnknownHostException, java.io.IOException
 	{
 		m_respQueue = new LinkedBlockingQueue<String>();
@@ -58,7 +59,8 @@ public class RemotePlayer {
 		m_input = m_sock.getInputStream();
 		m_output = m_sock.getOutputStream();
 
-		ReadThread thread = new ReadThread(m_input, m_respQueue);
+		ReadThread thread = new ReadThread(m_input, m_respQueue, 
+				notificationHandler);
 		thread.start();
 		
 		syncPlaylist();
@@ -197,6 +199,7 @@ public class RemotePlayer {
 	{
 		InputStream m_stream;
 		LinkedBlockingQueue<String> m_respQueue;
+		INotificationHandler m_notificationHandler;
 		
 		private class Header
 		{
@@ -210,10 +213,12 @@ public class RemotePlayer {
 			}
 		}
 
-		public ReadThread(InputStream stream, LinkedBlockingQueue<String> respQueue)
+		public ReadThread(InputStream stream, LinkedBlockingQueue<String> respQueue,
+				          INotificationHandler notificationHandler)
 		{
 			m_stream = stream;
 			m_respQueue = respQueue;
+			m_notificationHandler = notificationHandler;
 		}
 		
 		@Override
@@ -252,6 +257,10 @@ public class RemotePlayer {
 				{
 					return;
 				}
+			}
+			else if (h.msgType == MsgType.NOTIFICATION)
+			{
+				m_notificationHandler.processNotification(new String(bs));
 			}
 		}
 

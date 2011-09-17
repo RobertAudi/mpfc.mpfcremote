@@ -16,16 +16,21 @@ import android.widget.SimpleAdapter;
 import android.widget.ArrayAdapter;
 import android.widget.Adapter;
 import android.widget.AdapterView;
+import android.os.Handler;
 
 public class MainActivity extends Activity 
-	implements View.OnClickListener, AdapterView.OnItemClickListener {
+	implements View.OnClickListener, AdapterView.OnItemClickListener, INotificationHandler {
 	private RemotePlayer m_player;
+	
+	private Handler m_handler;
 
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        
+        m_handler = new Handler();
 
 		((Button)findViewById(R.id.pauseBtn)).setOnClickListener(this);
 		((Button)findViewById(R.id.refreshBtn)).setOnClickListener(this);
@@ -126,7 +131,7 @@ public class MainActivity extends Activity
 		String remotePort = prefs.getString("RemotePort", "19792");
 
 		try {
-			m_player = new RemotePlayer(remoteAddr, Integer.parseInt(remotePort));
+			m_player = new RemotePlayer(remoteAddr, Integer.parseInt(remotePort), this);
 		}
 		catch (java.net.UnknownHostException e) {
 			m_player = null;
@@ -136,5 +141,16 @@ public class MainActivity extends Activity
 		}
 
 		refresh();
+	}
+
+	public void processNotification(String msg) {
+		m_handler.post(new Runnable() {
+			@Override
+			public void run() {
+				if (m_player != null)
+					m_player.refresh();
+				refresh();
+			}
+		});
 	}
 }
