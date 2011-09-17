@@ -8,8 +8,13 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Button;
+import android.widget.SimpleAdapter;
+import android.widget.ArrayAdapter;
+import android.widget.Adapter;
 
 public class MainActivity extends Activity implements View.OnClickListener {
 	private RemotePlayer m_player;
@@ -100,7 +105,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
 		findViewById(R.id.stopBtn).setEnabled(enabled);
 		findViewById(R.id.backBtn).setEnabled(enabled);
 		if (enabled) {
-			((TextView)findViewById(R.id.curSongTextView)).setText("Current song");
+			RemotePlayer.CurSong curSong = m_player.getCurSong();
+			((TextView)findViewById(R.id.curSongTextView)).setText(curSong == null ? "" : curSong.title);
+
+			ListView playList = (ListView)findViewById(R.id.playListView);
+			ArrayAdapter<String> adapter = 
+				new ArrayAdapter<String>(this, R.layout.playlistrow, m_player.getPlayList());
+			playList.setAdapter(adapter);
 		}
 		else {
 			((TextView)findViewById(R.id.curSongTextView)).setText("Not connected");
