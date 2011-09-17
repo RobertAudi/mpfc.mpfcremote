@@ -26,7 +26,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         setContentView(R.layout.main);
 
 		((Button)findViewById(R.id.pauseBtn)).setOnClickListener(this);
-		((Button)findViewById(R.id.stopBtn)).setOnClickListener(this);
+		((Button)findViewById(R.id.refreshBtn)).setOnClickListener(this);
 		((Button)findViewById(R.id.nextBtn)).setOnClickListener(this);
 		((Button)findViewById(R.id.prevBtn)).setOnClickListener(this);
 		((Button)findViewById(R.id.backBtn)).setOnClickListener(this);
@@ -48,7 +48,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 				.setClass(this, com.sgsoftware.mpfcremote.PrefActivity.class);
 			this.startActivityForResult(intent, 0);
 		}
-		else if (item.getItemId() == R.id.menu_reconnect) {
+		else if (item.getItemId() == R.id.menu_refresh) {
 			tryConnect();
 		}
 		return true;
@@ -73,6 +73,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
 			break;
 		case R.id.backBtn:
 			m_player.timeBack();
+			break;
+		case R.id.refreshBtn:
+			tryConnect();
 			break;
 		}
 	}
@@ -99,8 +102,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
 		findViewById(R.id.nextBtn).setEnabled(enabled);
 		findViewById(R.id.pauseBtn).setEnabled(enabled);
 		findViewById(R.id.prevBtn).setEnabled(enabled);
-		findViewById(R.id.stopBtn).setEnabled(enabled);
 		findViewById(R.id.backBtn).setEnabled(enabled);
+		findViewById(R.id.refreshBtn).setEnabled(true);
 		if (enabled) {
 			RemotePlayer.CurSong curSong = m_player.getCurSong();
 			((TextView)findViewById(R.id.curSongTextView)).setText(curSong == null ? "" :
@@ -116,6 +119,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 		}
 		else {
 			((TextView)findViewById(R.id.curSongTextView)).setText("Not connected");
+			((ListView)findViewById(R.id.playListView)).setAdapter(null);
 		}
 	}
 }
