@@ -51,7 +51,7 @@ public class MainActivity extends Activity
 				.setClass(this, com.sgsoftware.mpfcremote.PrefActivity.class);
 			this.startActivityForResult(intent, 0);
 		}
-		else if (item.getItemId() == R.id.menu_refresh) {
+		else if (item.getItemId() == R.id.menu_reconnect) {
 			tryConnect();
 		}
 		return true;
@@ -78,34 +78,20 @@ public class MainActivity extends Activity
 			m_player.timeBack();
 			break;
 		case R.id.refreshBtn:
-			tryConnect();
+			if (m_player != null)
+				m_player.refresh();
+			refresh();
 			break;
 		}
 	}
-
+	
 	@Override
 	public void onItemClick(AdapterView<?> a, View v, int position, long id) {
 		if (m_player != null)
 			m_player.play(position);
 	}
 	
-	private void tryConnect() {
-		m_player = null;
-
-		SharedPreferences prefs = getSharedPreferences("com.sgsoftware.mpfcremote_preferences", 0);
-		String remoteAddr = prefs.getString("RemoteAddr", "");
-		String remotePort = prefs.getString("RemotePort", "19792");
-
-		try {
-			m_player = new RemotePlayer(remoteAddr, Integer.parseInt(remotePort));
-		}
-		catch (java.net.UnknownHostException e) {
-			m_player = null;
-		}
-		catch (java.io.IOException e) {
-			m_player = null;
-		}
-
+	private void refresh() {
 		// Enable/disable controls
 		boolean enabled = (m_player != null);
 		findViewById(R.id.nextBtn).setEnabled(enabled);
@@ -130,5 +116,25 @@ public class MainActivity extends Activity
 			((TextView)findViewById(R.id.curSongTextView)).setText("Not connected");
 			((ListView)findViewById(R.id.playListView)).setAdapter(null);
 		}
+	}
+	
+	private void tryConnect() {
+		m_player = null;
+
+		SharedPreferences prefs = getSharedPreferences("com.sgsoftware.mpfcremote_preferences", 0);
+		String remoteAddr = prefs.getString("RemoteAddr", "");
+		String remotePort = prefs.getString("RemotePort", "19792");
+
+		try {
+			m_player = new RemotePlayer(remoteAddr, Integer.parseInt(remotePort));
+		}
+		catch (java.net.UnknownHostException e) {
+			m_player = null;
+		}
+		catch (java.io.IOException e) {
+			m_player = null;
+		}
+
+		refresh();
 	}
 }

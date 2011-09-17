@@ -99,6 +99,12 @@ public class RemotePlayer {
 	{
 		send(String.format("play %d\n", pos));
 	}
+	
+	public void refresh()
+	{
+		syncPlaylist();
+		syncCurSong();
+	}
 
 	private void syncPlaylist()
 	{

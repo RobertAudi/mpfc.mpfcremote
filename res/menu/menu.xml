@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu
   xmlns:android="http://schemas.android.com/apk/res/android">
-<item android:id="@+id/menu_refresh" android:title="Refresh"></item><item android:title="Settings" android:id="@+id/menu_settings"></item>
+<item android:title="Reconnect" android:id="@+id/menu_reconnect"></item><item android:title="Settings" android:id="@+id/menu_settings"></item>
 
 </menu>
