@@ -18,7 +18,7 @@ public class RemotePlayer {
 	OutputStream m_output;
 
 	LinkedBlockingQueue<String> m_respQueue;
-
+	
 	public enum PlayStatus
 	{
 		PLAYING, STOPPED, PAUSED;
@@ -107,6 +107,39 @@ public class RemotePlayer {
 		syncPlaylist();
 		syncCurSong();
 	}
+	
+	public void clear()
+	{
+		send("clear_playlist\n");
+	}
+
+	public void add(String name)
+	{
+		send(String.format("add \"%s\"\n", name));
+	}
+
+	public class DirEntry
+	{
+		public String name;
+		public boolean isDir;
+	}
+
+	DirEntry[] listDir(String dir)
+	{
+		if (!send(String.format("list_dir \"%s\"\n", dir)))
+			return new DirEntry[] {};
+
+		try
+		{
+			String r = m_respQueue.poll(10, java.util.concurrent.TimeUnit.SECONDS);
+			if (r != null)
+				return parseListDir(r);
+		}
+		catch (java.lang.InterruptedException e)
+		{
+		}
+		return new DirEntry[] {};
+	}
 
 	private void syncPlaylist()
 	{
@@ -176,6 +209,27 @@ public class RemotePlayer {
 		}
 	}
 	
+	private DirEntry[] parseListDir(String s)
+	{
+		try
+		{
+			JSONArray js = new JSONArray(new JSONTokener(s));
+			DirEntry[] res = new DirEntry[js.length()];
+			for ( int i = 0; i < js.length(); i++ )
+			{
+				JSONObject obj = js.getJSONObject(i);
+				res[i] = new DirEntry();
+				res[i].name = obj.getString("name");
+				res[i].isDir = (obj.getString("type") == "d");
+			}
+			return res;
+		}
+		catch (org.json.JSONException e)
+		{
+			return new DirEntry[] {};
+		}
+	}
+
 	private boolean send(String s)
 	{
 		try

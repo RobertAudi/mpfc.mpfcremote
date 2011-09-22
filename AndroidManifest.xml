@@ -20,6 +20,8 @@
                 <category android:name="android.intent.category.PREFERENCE" />
             </intent-filter>
         </activity>
+        <activity android:name=".PlaylistActivity"
+			android:label="PlaylistActivity" />
 
     </application>
 

@@ -8,27 +8,28 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Button;
-import android.widget.SimpleAdapter;
 import android.widget.ArrayAdapter;
-import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.os.Handler;
 
 public class MainActivity extends Activity 
 	implements View.OnClickListener, AdapterView.OnItemClickListener, INotificationHandler {
-	private RemotePlayer m_player;
+	private static RemotePlayer m_player;
 	
 	private Handler m_handler;
+	
+	private boolean m_notificationsDisabled;
 
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        
+        m_notificationsDisabled = false;
         
         m_handler = new Handler();
 
@@ -55,6 +56,13 @@ public class MainActivity extends Activity
 			Intent intent = new Intent()
 				.setClass(this, com.sgsoftware.mpfcremote.PrefActivity.class);
 			this.startActivityForResult(intent, 0);
+		}
+		else if (item.getItemId() == R.id.menu_playlist) {
+			m_notificationsDisabled = true;
+			Intent intent = new Intent()
+				.setClass(this, com.sgsoftware.mpfcremote.PlaylistActivity.class);
+			this.startActivityForResult(intent, 0);
+			m_notificationsDisabled = false;
 		}
 		else if (item.getItemId() == R.id.menu_reconnect) {
 			tryConnect();
@@ -144,6 +152,9 @@ public class MainActivity extends Activity
 	}
 
 	public void processNotification(String msg) {
+		if (m_notificationsDisabled)
+			return;
+		
 		m_handler.post(new Runnable() {
 			@Override
 			public void run() {
@@ -152,5 +163,9 @@ public class MainActivity extends Activity
 				refresh();
 			}
 		});
+	}
+
+	public static RemotePlayer getPlayer() {
+		return m_player;
 	}
 }
