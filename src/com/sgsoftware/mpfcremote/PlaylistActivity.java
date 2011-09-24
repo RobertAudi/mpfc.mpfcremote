@@ -59,10 +59,8 @@ public class PlaylistActivity extends ListActivity
 
 	@Override
 	public void onItemClick(AdapterView<?> a, View v, int position, long id) {
-		/*
 		if (!m_entries[position].isDir)
 			return;
-			*/
 		
 		if (m_curDir != "/")
 			m_curDir += "/";

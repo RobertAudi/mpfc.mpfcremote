@@ -118,10 +118,15 @@ public class RemotePlayer {
 		send(String.format("add \"%s\"\n", name));
 	}
 
-	public class DirEntry
+	public class DirEntry implements Comparable
 	{
 		public String name;
 		public boolean isDir;
+		
+		public int compareTo(Object o)
+		{
+			return name.compareTo(((DirEntry)o).name);
+		}
 	}
 
 	DirEntry[] listDir(String dir)
@@ -220,8 +225,9 @@ public class RemotePlayer {
 				JSONObject obj = js.getJSONObject(i);
 				res[i] = new DirEntry();
 				res[i].name = obj.getString("name");
-				res[i].isDir = (obj.getString("type") == "d");
+				res[i].isDir = (obj.getString("type").equals("d"));
 			}
+			java.util.Arrays.sort(res);
 			return res;
 		}
 		catch (org.json.JSONException e)
