@@ -102,6 +102,7 @@ public class PlaylistActivity extends ListActivity
 		setListAdapter(adapter);
 		
 		((TextView)findViewById(R.id.playlist_curdir)).setText(m_curDir);
+		getListView().setSelection(0);
 	}
 
 	private void getEntries() {
