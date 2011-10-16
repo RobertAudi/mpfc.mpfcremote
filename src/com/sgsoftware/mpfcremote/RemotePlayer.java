@@ -63,8 +63,8 @@ public class RemotePlayer {
 				notificationHandler);
 		thread.start();
 		
-		syncPlaylist();
 		syncCurSong();
+		syncPlaylist();
 	}
 
 	public CurSong getCurSong()
@@ -104,8 +104,8 @@ public class RemotePlayer {
 	
 	public void refresh()
 	{
-		syncPlaylist();
 		syncCurSong();
+		syncPlaylist();
 	}
 	
 	public void clear()
@@ -188,7 +188,10 @@ public class RemotePlayer {
 			for ( int i = 0; i < js.length(); i++ )
 			{
 				JSONObject obj = js.getJSONObject(i);
-				m_playList.add(String.format("%d. %s", i + 1, obj.getString("title")));
+				int len = obj.getInt("length");
+				m_playList.add(String.format("%s%d. %s (%d:%02d)",
+						(m_curSong != null && i == m_curSong.posInList ? "* " : ""),
+						i + 1, obj.getString("title"), len / 60, len % 60));
 			}
 		}
 		catch (org.json.JSONException e)
