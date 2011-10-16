@@ -115,6 +115,12 @@ public class RemotePlayer {
 
 	public void add(String name)
 	{
+		// Escape special symbols
+		name = name.replace("*", "\\*");
+		name = name.replace("?", "\\?");
+		name = name.replace("[", "\\[");
+		name = name.replace("]", "\\]");
+		name = name.replace("~", "\\~");
 		send(String.format("add \"%s\"\n", name));
 	}
 
