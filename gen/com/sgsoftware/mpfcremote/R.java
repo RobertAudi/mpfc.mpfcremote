@@ -17,11 +17,13 @@ public final class R {
         public static final int backBtn=0x7f070005;
         public static final int curSongTextView=0x7f070000;
         public static final int curTimeTextView=0x7f070001;
-        public static final int menu_playlist=0x7f07000e;
-        public static final int menu_reconnect=0x7f07000d;
-        public static final int menu_settings=0x7f07000f;
+        public static final int menu_playlist=0x7f070010;
+        public static final int menu_reconnect=0x7f07000f;
+        public static final int menu_settings=0x7f070011;
         public static final int nextBtn=0x7f070004;
         public static final int pauseBtn=0x7f070003;
+        public static final int playListItemLength=0x7f07000e;
+        public static final int playListItemTitle=0x7f07000d;
         public static final int playListView=0x7f070007;
         public static final int playlist_add=0x7f070009;
         public static final int playlist_clear=0x7f07000a;

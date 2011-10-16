@@ -45,8 +45,14 @@ public class RemotePlayer {
 		PlayStatus status;
 	}
 
+	public class Song
+	{
+		String name;
+		int length;
+	}
+
 	private CurSong m_curSong;
-	private ArrayList<String> m_playList;
+	private ArrayList<Song> m_playList;
 	
 	public RemotePlayer(String addr, int port,
 						INotificationHandler notificationHandler) 
@@ -72,7 +78,7 @@ public class RemotePlayer {
 		return m_curSong;
 	}
 
-	public ArrayList<String> getPlayList()
+	public ArrayList<Song> getPlayList()
 	{
 		return m_playList;
 	}
@@ -186,7 +192,7 @@ public class RemotePlayer {
 
 	private void parsePlaylist(String s)
 	{
-		m_playList = new ArrayList<String>();
+		m_playList = new ArrayList<Song>();
 
 		try
 		{
@@ -194,10 +200,10 @@ public class RemotePlayer {
 			for ( int i = 0; i < js.length(); i++ )
 			{
 				JSONObject obj = js.getJSONObject(i);
-				int len = obj.getInt("length");
-				m_playList.add(String.format("%s%d. %s (%d:%02d)",
-						(m_curSong != null && i == m_curSong.posInList ? "* " : ""),
-						i + 1, obj.getString("title"), len / 60, len % 60));
+				Song song = new Song();
+				song.name = obj.getString("title");
+				song.length = obj.getInt("length");
+				m_playList.add(song);
 			}
 		}
 		catch (org.json.JSONException e)

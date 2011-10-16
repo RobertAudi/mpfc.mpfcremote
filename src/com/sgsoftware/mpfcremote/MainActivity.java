@@ -2,18 +2,23 @@ package com.sgsoftware.mpfcremote;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.LayoutInflater;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Button;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.AdapterView;
 import android.os.Handler;
+import android.graphics.Color;
 
 public class MainActivity extends Activity 
 	implements View.OnClickListener, AdapterView.OnItemClickListener, INotificationHandler {
@@ -121,9 +126,7 @@ public class MainActivity extends Activity
 					curSong.length / 60, curSong.length % 60));
 
 			ListView playList = (ListView)findViewById(R.id.playListView);
-			ArrayAdapter<String> adapter = 
-				new ArrayAdapter<String>(this, R.layout.playlistrow, m_player.getPlayList());
-			playList.setAdapter(adapter);
+			playList.setAdapter(new MyAdapter(m_player));
 		}
 		else {
 			((TextView)findViewById(R.id.curSongTextView)).setText("Not connected");
@@ -167,5 +170,50 @@ public class MainActivity extends Activity
 
 	public static RemotePlayer getPlayer() {
 		return m_player;
+	}
+
+	private class MyAdapter extends BaseAdapter {
+		private RemotePlayer m_player;
+
+		public MyAdapter(RemotePlayer player) {
+			m_player = player;
+		}
+
+		@Override
+		public int getCount() {
+			return m_player.getPlayList().size();
+		}
+
+		@Override
+		public long getItemId(int pos) {
+			return pos;
+		}
+
+		@Override
+		public Object getItem(int pos) {
+			return null;
+		}
+
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			LayoutInflater inflater =
+				(LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			ViewGroup vg = (ViewGroup)inflater.inflate(
+					R.layout.playlistrow, parent, false);
+
+			TextView tv_title = (TextView)vg.findViewById(R.id.playListItemTitle);
+			TextView tv_len = (TextView)vg.findViewById(R.id.playListItemLength);
+
+			RemotePlayer.Song s = m_player.getPlayList().get(position);
+			tv_title.setText(String.format("%d. %s", position + 1, s.name));
+			tv_len.setText(String.format("%d:%02d", s.length / 60, s.length % 60));
+
+			int col = (m_player.getCurSong() != null && 
+					   position == m_player.getCurSong().posInList) ?
+					Color.RED : Color.LTGRAY;
+			tv_title.setTextColor(col);
+			tv_len.setTextColor(col);
+			return vg;
+		}
 	}
 }
