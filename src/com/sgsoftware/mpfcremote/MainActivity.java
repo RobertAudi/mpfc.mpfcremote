@@ -5,6 +5,9 @@ import android.content.Intent;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -43,7 +46,10 @@ public class MainActivity extends Activity
 		((Button)findViewById(R.id.nextBtn)).setOnClickListener(this);
 		((Button)findViewById(R.id.prevBtn)).setOnClickListener(this);
 		((Button)findViewById(R.id.backBtn)).setOnClickListener(this);
-		((ListView)findViewById(R.id.playListView)).setOnItemClickListener(this);
+
+		ListView lv = (ListView)findViewById(R.id.playListView);
+		lv.setOnItemClickListener(this);
+		registerForContextMenu(lv);
 
 		tryConnect();
     }
@@ -75,6 +81,28 @@ public class MainActivity extends Activity
 		return true;
 	}
 	
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v,
+			                        ContextMenuInfo info) {
+		super.onCreateContextMenu(menu, v, info);
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.playlist_context, menu);
+	}
+
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+		AdapterContextMenuInfo info = (AdapterContextMenuInfo)item.getMenuInfo();
+		switch (item.getItemId()) {
+			case R.id.remove_song:
+				m_player.removeSong(info.position);
+				return true;
+			case R.id.queue_song:
+				m_player.queueSong(info.position);
+				return true;
+		}
+		return super.onContextItemSelected(item);
+	}
+
 	@Override
 	public void onActivityResult(int reqCode, int resCode, Intent data) {
 		super.onActivityResult(reqCode, resCode, data);

@@ -29,7 +29,9 @@ public final class R {
         public static final int playlist_clear=0x7f07000a;
         public static final int playlist_curdir=0x7f070008;
         public static final int prevBtn=0x7f070002;
+        public static final int queue_song=0x7f070013;
         public static final int refreshBtn=0x7f070006;
+        public static final int remove_song=0x7f070012;
         public static final int row_chbox=0x7f07000b;
         public static final int row_tv=0x7f07000c;
     }
@@ -41,6 +43,7 @@ public final class R {
     }
     public static final class menu {
         public static final int menu=0x7f060000;
+        public static final int playlist_context=0x7f060001;
     }
     public static final class string {
         public static final int app_name=0x7f050001;

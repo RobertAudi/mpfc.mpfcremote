@@ -130,6 +130,16 @@ public class RemotePlayer {
 		send(String.format("add \"%s\"\n", name));
 	}
 
+	public void removeSong(int pos)
+	{
+		send(String.format("remove %d\n", pos));
+	}
+
+	public void queueSong(int pos)
+	{
+		send(String.format("queue %d\n", pos));
+	}
+
 	public class DirEntry implements Comparable
 	{
 		public String name;
