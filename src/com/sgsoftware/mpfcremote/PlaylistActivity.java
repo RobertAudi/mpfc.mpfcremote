@@ -1,6 +1,7 @@
 package com.sgsoftware.mpfcremote;
 
 import java.util.BitSet;
+import java.util.Stack;
 
 import android.os.Bundle;
 import android.app.ListActivity;
@@ -38,6 +39,8 @@ public class PlaylistActivity extends ListActivity
 		((Button)findViewById(R.id.playlist_clear)).setOnClickListener(this);
 		getListView().setOnItemClickListener(this);
 
+		m_scrollPositions = new Stack<ScrollPos>();
+
 		m_curDir = "/";
 		loadDir();
 
@@ -73,6 +76,7 @@ public class PlaylistActivity extends ListActivity
 				l = m_curDir.lastIndexOf('/', l) + 1;
 				m_curDir = m_curDir.substring(0, l);
 				loadDir();
+				restoreScrollPos();
 				return;
 			}
 
@@ -82,6 +86,7 @@ public class PlaylistActivity extends ListActivity
 		if (!m_entries[position].isDir)
 			return;
 		
+		rememberScrollPos();
 		m_curDir += m_entries[position].name;
 		m_curDir += "/";
 		loadDir();
@@ -101,6 +106,26 @@ public class PlaylistActivity extends ListActivity
 
 	private void getEntries() {
 		m_entries = MainActivity.getPlayer().listDir(m_curDir);
+	}
+
+	private class ScrollPos {
+		int pos;
+		int top;
+	};
+	private Stack<ScrollPos> m_scrollPositions;
+
+	private void rememberScrollPos() {
+		ListView lv = getListView();
+		ScrollPos sp = new ScrollPos();
+		sp.pos = lv.getFirstVisiblePosition();
+		View v = lv.getChildAt(0);
+		sp.top = (v == null) ? 0 : v.getTop();
+		m_scrollPositions.push(sp);
+	}
+
+	private void restoreScrollPos() {
+		ScrollPos sp = m_scrollPositions.pop();
+		getListView().setSelectionFromTop(sp.pos, sp.top);
 	}
 
 	private class MyAdapter extends BaseAdapter
