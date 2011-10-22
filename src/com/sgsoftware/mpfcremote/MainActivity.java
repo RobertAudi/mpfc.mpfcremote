@@ -138,6 +138,12 @@ public class MainActivity extends Activity
 	}
 	
 	private void refresh() {
+		// Remember play list scrolling position
+		ListView playList = (ListView)findViewById(R.id.playListView);
+		int scrollPos = playList.getFirstVisiblePosition();
+		View scrollV = playList.getChildAt(0);
+		int scrollTop = (scrollV == null) ? 0 : scrollV.getTop();
+
 		// Enable/disable controls
 		boolean enabled = (m_player != null);
 		findViewById(R.id.nextBtn).setEnabled(enabled);
@@ -153,13 +159,15 @@ public class MainActivity extends Activity
 				String.format("%d:%02d / %d:%02d", curSong.curPos / 60, curSong.curPos % 60,
 					curSong.length / 60, curSong.length % 60));
 
-			ListView playList = (ListView)findViewById(R.id.playListView);
 			playList.setAdapter(new MyAdapter(m_player));
 		}
 		else {
 			((TextView)findViewById(R.id.curSongTextView)).setText("Not connected");
-			((ListView)findViewById(R.id.playListView)).setAdapter(null);
+			playList.setAdapter(null);
 		}
+
+		// Restore scroll position
+		playList.setSelectionFromTop(scrollPos, scrollTop);
 	}
 	
 	private void tryConnect() {
