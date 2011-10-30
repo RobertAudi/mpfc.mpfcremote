@@ -126,6 +126,11 @@ public class RemotePlayer {
 	{
 		send(String.format("play %d\n", pos));
 	}
+
+	public void seek(int t)
+	{
+		send(String.format("seek %d\n", t));
+	}
 	
 	public void refresh()
 	{

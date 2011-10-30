@@ -20,12 +20,17 @@ import android.widget.Button;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.AdapterView;
+import android.widget.SeekBar;
 import android.os.Handler;
 import android.graphics.Color;
 import android.util.Log;
 
 public class MainActivity extends Activity 
-	implements View.OnClickListener, AdapterView.OnItemClickListener, INotificationHandler {
+	implements
+		View.OnClickListener,
+		AdapterView.OnItemClickListener,
+		SeekBar.OnSeekBarChangeListener,
+		INotificationHandler {
 	private static RemotePlayer m_player;
 	
 	private Handler m_handler;
@@ -49,6 +54,7 @@ public class MainActivity extends Activity
 		((Button)findViewById(R.id.nextBtn)).setOnClickListener(this);
 		((Button)findViewById(R.id.prevBtn)).setOnClickListener(this);
 		((Button)findViewById(R.id.backBtn)).setOnClickListener(this);
+		((SeekBar)findViewById(R.id.seekBar)).setOnSeekBarChangeListener(this);
 
 		ListView lv = (ListView)findViewById(R.id.playListView);
 		lv.setOnItemClickListener(this);
@@ -131,6 +137,21 @@ public class MainActivity extends Activity
 			break;
 		}
 	}
+
+	@Override
+	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+		if (fromUser && m_player != null) {
+			m_player.seek(progress);
+		}
+	}
+	
+	@Override
+	public void onStartTrackingTouch(SeekBar seekBar) {
+	}
+	
+	@Override
+	public void onStopTrackingTouch(SeekBar seekBar) {
+	}
 	
 	@Override
 	public void onItemClick(AdapterView<?> a, View v, int position, long id) {
@@ -143,6 +164,8 @@ public class MainActivity extends Activity
 		((TextView)findViewById(R.id.curTimeTextView)).setText(curSong == null ? "" :
 			String.format("%d:%02d / %d:%02d", curSong.curPos / 60, curSong.curPos % 60,
 				curSong.length / 60, curSong.length % 60));
+		((SeekBar)findViewById(R.id.seekBar)).setProgress(
+			curSong == null ? 0 : curSong.curPos);
 	}
 	
 	private void refresh() {
@@ -160,6 +183,7 @@ public class MainActivity extends Activity
 		findViewById(R.id.pauseBtn).setEnabled(enabled);
 		findViewById(R.id.prevBtn).setEnabled(enabled);
 		findViewById(R.id.backBtn).setEnabled(enabled);
+		findViewById(R.id.seekBar).setEnabled(enabled);
 		findViewById(R.id.refreshBtn).setEnabled(true);
 		if (enabled) {
 			int totalLength = m_player.getTotalLength();
@@ -171,6 +195,8 @@ public class MainActivity extends Activity
 			((TextView)findViewById(R.id.curSongTextView)).setText(curSong == null ? "" :
 				String.format("%d. %s", curSong.posInList + 1, curSong.title));
 
+			((SeekBar)findViewById(R.id.seekBar)).setMax(curSong.length);
+
 			updateCurTimeView();
 			m_handler.postDelayed(m_updateTimeTask, TIME_UPDATE_INTERVAL);
 
@@ -180,6 +206,7 @@ public class MainActivity extends Activity
 			((TextView)findViewById(R.id.curSongTextView)).setText("Not connected");
 			((TextView)findViewById(R.id.curTimeTextView)).setText("");
 			((TextView)findViewById(R.id.totalLength)).setText("");
+			((SeekBar)findViewById(R.id.seekBar)).setMax(0);
 			playList.setAdapter(null);
 		}
 
