@@ -127,9 +127,7 @@ public class MainActivity extends Activity
 			m_player.timeBack();
 			break;
 		case R.id.refreshBtn:
-			if (m_player != null)
-				m_player.refresh();
-			refresh();
+			refreshAll();
 			break;
 		}
 	}
@@ -182,9 +180,18 @@ public class MainActivity extends Activity
 		// Restore scroll position
 		playList.setSelectionFromTop(scrollPos, scrollTop);
 	}
+
+	private void refreshAll() {
+		if (m_player != null)
+			m_player.refresh();
+		refresh();
+	}
 	
 	private void tryConnect() {
-		m_player = null;
+		if (m_player != null) {
+			m_player.destroy();
+			m_player = null;
+		}
 
 		SharedPreferences prefs = getSharedPreferences("com.sgsoftware.mpfcremote_preferences", 0);
 		String remoteAddr = prefs.getString("RemoteAddr", "");
@@ -212,7 +219,16 @@ public class MainActivity extends Activity
 	@Override
 	protected void onRestart() {
 		super.onRestart();
-		refresh();
+		refreshAll();
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		if (m_player != null) {
+			m_player.destroy();
+			m_player = null;
+		}
 	}
 
 	public void processNotification(String msg) {
@@ -222,19 +238,13 @@ public class MainActivity extends Activity
 		m_handler.post(new Runnable() {
 			@Override
 			public void run() {
-				if (m_player != null)
-					m_player.refresh();
-				refresh();
+				refreshAll();
 			}
 		});
 	}
 
 	private Runnable m_updateTimeTask = new Runnable() {
 		public void run() {
-			/*
-			Log.v("mpfc", 
-					String.format("in update time task\n"));
-					*/
 			if (m_player == null)
 				return;
 

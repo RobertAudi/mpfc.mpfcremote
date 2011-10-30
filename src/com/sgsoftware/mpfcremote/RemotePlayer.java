@@ -17,6 +17,8 @@ public class RemotePlayer {
 	InputStream m_input;
 	OutputStream m_output;
 
+	ReadThread m_readThread;
+
 	LinkedBlockingQueue<String> m_respQueue;
 	
 	public enum PlayStatus
@@ -65,12 +67,23 @@ public class RemotePlayer {
 		m_input = m_sock.getInputStream();
 		m_output = m_sock.getOutputStream();
 
-		ReadThread thread = new ReadThread(m_input, m_respQueue, 
+		m_readThread = new ReadThread(m_input, m_respQueue, 
 				notificationHandler);
-		thread.start();
+		m_readThread.start();
 		
 		syncCurSong();
 		syncPlaylist();
+	}
+
+	public void destroy()
+	{
+		send("bye\n");
+		try {
+			m_sock.close();
+		}
+		catch (java.io.IOException e)
+		{ }
+		m_readThread.interrupt();
 	}
 
 	public CurSong getCurSong()
@@ -323,12 +336,17 @@ public class RemotePlayer {
 				}
 				catch (java.io.IOException e)
 				{
+					break;
+				}
+				catch (java.lang.InterruptedException e)
+				{
+					break;
 				}
 			}
 		}
 
 		private void readMsg()
-			throws java.io.IOException
+			throws java.io.IOException, java.lang.InterruptedException
 		{
 			Header h = readHeader();
 			if (h == null)
@@ -340,14 +358,7 @@ public class RemotePlayer {
 
 			if (h.msgType == MsgType.RESPONSE)
 			{
-				try
-				{
-					m_respQueue.put(new String(bs));
-				}
-				catch (java.lang.InterruptedException e)
-				{
-					return;
-				}
+				m_respQueue.put(new String(bs));
 			}
 			else if (h.msgType == MsgType.NOTIFICATION)
 			{
