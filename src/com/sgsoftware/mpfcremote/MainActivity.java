@@ -22,6 +22,7 @@ import android.widget.BaseAdapter;
 import android.widget.AdapterView;
 import android.os.Handler;
 import android.graphics.Color;
+import android.util.Log;
 
 public class MainActivity extends Activity 
 	implements View.OnClickListener, AdapterView.OnItemClickListener, INotificationHandler {
@@ -30,6 +31,8 @@ public class MainActivity extends Activity
 	private Handler m_handler;
 	
 	private boolean m_notificationsDisabled;
+
+	private static int TIME_UPDATE_INTERVAL = 1000;
 
     /** Called when the activity is first created. */
     @Override
@@ -136,8 +139,17 @@ public class MainActivity extends Activity
 		if (m_player != null)
 			m_player.play(position);
 	}
+
+	private void updateCurTimeView() {
+		RemotePlayer.CurSong curSong = m_player.getCurSong();
+		((TextView)findViewById(R.id.curTimeTextView)).setText(curSong == null ? "" :
+			String.format("%d:%02d / %d:%02d", curSong.curPos / 60, curSong.curPos % 60,
+				curSong.length / 60, curSong.length % 60));
+	}
 	
 	private void refresh() {
+		m_handler.removeCallbacks(m_updateTimeTask);
+
 		// Remember play list scrolling position
 		ListView playList = (ListView)findViewById(R.id.playListView);
 		int scrollPos = playList.getFirstVisiblePosition();
@@ -155,14 +167,15 @@ public class MainActivity extends Activity
 			RemotePlayer.CurSong curSong = m_player.getCurSong();
 			((TextView)findViewById(R.id.curSongTextView)).setText(curSong == null ? "" :
 				String.format("%d. %s", curSong.posInList + 1, curSong.title));
-			((TextView)findViewById(R.id.curTimeTextView)).setText(curSong == null ? "" :
-				String.format("%d:%02d / %d:%02d", curSong.curPos / 60, curSong.curPos % 60,
-					curSong.length / 60, curSong.length % 60));
+
+			updateCurTimeView();
+			m_handler.postDelayed(m_updateTimeTask, TIME_UPDATE_INTERVAL);
 
 			playList.setAdapter(new MyAdapter(m_player));
 		}
 		else {
 			((TextView)findViewById(R.id.curSongTextView)).setText("Not connected");
+			((TextView)findViewById(R.id.curTimeTextView)).setText("");
 			playList.setAdapter(null);
 		}
 
@@ -190,6 +203,18 @@ public class MainActivity extends Activity
 		refresh();
 	}
 
+	@Override
+	protected void onStop() {
+		super.onStop();
+		m_handler.removeCallbacks(m_updateTimeTask);
+	}
+
+	@Override
+	protected void onRestart() {
+		super.onRestart();
+		refresh();
+	}
+
 	public void processNotification(String msg) {
 		if (m_notificationsDisabled)
 			return;
@@ -203,6 +228,28 @@ public class MainActivity extends Activity
 			}
 		});
 	}
+
+	private Runnable m_updateTimeTask = new Runnable() {
+		public void run() {
+			/*
+			Log.v("mpfc", 
+					String.format("in update time task\n"));
+					*/
+			if (m_player == null)
+				return;
+
+			RemotePlayer.CurSong curSong = m_player.getCurSong();
+			if (curSong == null)
+				return;
+			if (curSong.status != RemotePlayer.PlayStatus.PLAYING)
+				return;
+
+			m_player.incrementCurTime(TIME_UPDATE_INTERVAL);
+			updateCurTimeView();
+
+			m_handler.postDelayed(this, TIME_UPDATE_INTERVAL);
+		}
+	};
 
 	public static RemotePlayer getPlayer() {
 		return m_player;

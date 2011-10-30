@@ -25,11 +25,11 @@ public class RemotePlayer {
 
 		public static PlayStatus parse(String s)
 		{
-			if (s == "playing")
+			if (s.equals("playing"))
 				return PLAYING;
-			else if (s == "paused")
+			else if (s.equals("paused"))
 				return PAUSED;
-			else if (s == "stopped")
+			else if (s.equals("stopped"))
 				return STOPPED;
 			else
 				return STOPPED;
@@ -166,6 +166,12 @@ public class RemotePlayer {
 		{
 		}
 		return new DirEntry[] {};
+	}
+
+	public void incrementCurTime(int ms) {
+		if (m_curSong == null)
+			return;
+		m_curSong.curPos += ms/1000;
 	}
 
 	private void syncPlaylist()
