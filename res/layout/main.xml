@@ -48,27 +48,32 @@
 <Button android:id="@+id/prevBtn" 
     android:layout_width="wrap_content" 
     android:layout_height="fill_parent" 
-    android:text="Prev"
+	android:text="&lt;&lt;"
     />
 <Button android:id="@+id/pauseBtn" 
     android:layout_width="wrap_content" 
     android:layout_height="fill_parent" 
-    android:text="Pause"
+    android:text="||"
     />
 <Button android:id="@+id/nextBtn" 
     android:layout_width="wrap_content" 
     android:layout_height="fill_parent" 
-    android:text="Next"
+	android:text="&gt;&gt;"
     />
 <Button android:id="@+id/backBtn" 
     android:layout_width="wrap_content" 
     android:layout_height="fill_parent" 
-    android:text="Back"
+	android:text="&lt;-"
     />
 <Button android:id="@+id/refreshBtn" 
     android:layout_width="wrap_content" 
     android:layout_height="fill_parent" 
-    android:text="Refresh"
+    android:text="R"
+    />
+<Button android:id="@+id/centerBtn" 
+    android:layout_width="wrap_content" 
+    android:layout_height="fill_parent" 
+    android:text="C"
     />
 </LinearLayout>
 

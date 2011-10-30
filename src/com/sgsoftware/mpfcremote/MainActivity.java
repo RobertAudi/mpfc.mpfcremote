@@ -54,6 +54,7 @@ public class MainActivity extends Activity
 		((Button)findViewById(R.id.nextBtn)).setOnClickListener(this);
 		((Button)findViewById(R.id.prevBtn)).setOnClickListener(this);
 		((Button)findViewById(R.id.backBtn)).setOnClickListener(this);
+		((Button)findViewById(R.id.centerBtn)).setOnClickListener(this);
 		((SeekBar)findViewById(R.id.seekBar)).setOnSeekBarChangeListener(this);
 
 		ListView lv = (ListView)findViewById(R.id.playListView);
@@ -132,6 +133,20 @@ public class MainActivity extends Activity
 		case R.id.backBtn:
 			m_player.timeBack();
 			break;
+		case R.id.centerBtn:
+		{
+			RemotePlayer.CurSong curSong = m_player.getCurSong();
+			if (curSong != null) {
+				ListView playList = (ListView)findViewById(R.id.playListView);
+				int scrollPos = curSong.posInList;
+				scrollPos -= (playList.getLastVisiblePosition() - 
+						playList.getFirstVisiblePosition() + 1) / 2;
+				if (scrollPos < 0)
+					scrollPos = 0;
+				playList.setSelectionFromTop(scrollPos, 0);
+				break;
+			}
+		}
 		case R.id.refreshBtn:
 			refreshAll();
 			break;
@@ -183,6 +198,7 @@ public class MainActivity extends Activity
 		findViewById(R.id.pauseBtn).setEnabled(enabled);
 		findViewById(R.id.prevBtn).setEnabled(enabled);
 		findViewById(R.id.backBtn).setEnabled(enabled);
+		findViewById(R.id.centerBtn).setEnabled(enabled);
 		findViewById(R.id.seekBar).setEnabled(enabled);
 		findViewById(R.id.refreshBtn).setEnabled(true);
 		if (enabled) {
@@ -195,7 +211,8 @@ public class MainActivity extends Activity
 			((TextView)findViewById(R.id.curSongTextView)).setText(curSong == null ? "" :
 				String.format("%d. %s", curSong.posInList + 1, curSong.title));
 
-			((SeekBar)findViewById(R.id.seekBar)).setMax(curSong.length);
+			((SeekBar)findViewById(R.id.seekBar)).setMax(
+				curSong == null ? 0 : curSong.length);
 
 			updateCurTimeView();
 			m_handler.postDelayed(m_updateTimeTask, TIME_UPDATE_INTERVAL);
