@@ -162,6 +162,11 @@ public class MainActivity extends Activity
 		findViewById(R.id.backBtn).setEnabled(enabled);
 		findViewById(R.id.refreshBtn).setEnabled(true);
 		if (enabled) {
+			int totalLength = m_player.getTotalLength();
+			((TextView)findViewById(R.id.totalLength)).setText(
+				String.format("Total length: %d:%02d",
+					totalLength / 60, totalLength % 60));
+
 			RemotePlayer.CurSong curSong = m_player.getCurSong();
 			((TextView)findViewById(R.id.curSongTextView)).setText(curSong == null ? "" :
 				String.format("%d. %s", curSong.posInList + 1, curSong.title));
@@ -174,6 +179,7 @@ public class MainActivity extends Activity
 		else {
 			((TextView)findViewById(R.id.curSongTextView)).setText("Not connected");
 			((TextView)findViewById(R.id.curTimeTextView)).setText("");
+			((TextView)findViewById(R.id.totalLength)).setText("");
 			playList.setAdapter(null);
 		}
 

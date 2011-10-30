@@ -55,6 +55,7 @@ public class RemotePlayer {
 
 	private CurSong m_curSong;
 	private ArrayList<Song> m_playList;
+	private int m_totalLength;
 	
 	public RemotePlayer(String addr, int port,
 						INotificationHandler notificationHandler) 
@@ -94,6 +95,11 @@ public class RemotePlayer {
 	public ArrayList<Song> getPlayList()
 	{
 		return m_playList;
+	}
+
+	public int getTotalLength()
+	{
+		return m_totalLength;
 	}
 	
 	public void pause()
@@ -189,6 +195,8 @@ public class RemotePlayer {
 
 	private void syncPlaylist()
 	{
+		m_totalLength = 0;
+
 		if (!send("get_playlist\n"))
 			return;
 		try
@@ -232,6 +240,7 @@ public class RemotePlayer {
 				Song song = new Song();
 				song.name = obj.getString("title");
 				song.length = obj.getInt("length");
+				m_totalLength += song.length;
 				m_playList.add(song);
 			}
 		}
