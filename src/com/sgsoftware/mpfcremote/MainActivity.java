@@ -54,7 +54,6 @@ public class MainActivity extends Activity
         m_handler = new Handler();
 
 		((Button)findViewById(R.id.pauseBtn)).setOnClickListener(this);
-		((Button)findViewById(R.id.refreshBtn)).setOnClickListener(this);
 		((Button)findViewById(R.id.nextBtn)).setOnClickListener(this);
 		((Button)findViewById(R.id.prevBtn)).setOnClickListener(this);
 		((Button)findViewById(R.id.backBtn)).setOnClickListener(this);
@@ -94,6 +93,9 @@ public class MainActivity extends Activity
 		}
 		else if (item.getItemId() == R.id.menu_reconnect) {
 			tryConnect();
+		}
+		else if (item.getItemId() == R.id.menu_refresh) {
+			refreshAll();
 		}
 		return true;
 	}
@@ -151,12 +153,9 @@ public class MainActivity extends Activity
 				if (scrollPos < 0)
 					scrollPos = 0;
 				playList.setSelectionFromTop(scrollPos, 0);
-				break;
 			}
-		}
-		case R.id.refreshBtn:
-			refreshAll();
 			break;
+		}
 		}
 	}
 
@@ -207,7 +206,6 @@ public class MainActivity extends Activity
 		findViewById(R.id.backBtn).setEnabled(enabled);
 		findViewById(R.id.centerBtn).setEnabled(enabled);
 		findViewById(R.id.seekBar).setEnabled(enabled);
-		findViewById(R.id.refreshBtn).setEnabled(true);
 		if (enabled) {
 			int totalLength = m_player.getTotalLength();
 			((TextView)findViewById(R.id.totalLength)).setText(

@@ -65,11 +65,6 @@
     android:layout_height="fill_parent" 
 	android:text="&lt;-"
     />
-<Button android:id="@+id/refreshBtn" 
-    android:layout_width="wrap_content" 
-    android:layout_height="fill_parent" 
-    android:text="R"
-    />
 <Button android:id="@+id/centerBtn" 
     android:layout_width="wrap_content" 
     android:layout_height="fill_parent" 

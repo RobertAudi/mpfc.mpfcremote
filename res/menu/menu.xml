@@ -2,6 +2,7 @@
 <menu
   xmlns:android="http://schemas.android.com/apk/res/android">
   <item android:title="Reconnect" android:id="@+id/menu_reconnect"></item>
+  <item android:title="Refresh" android:id="@+id/menu_refresh"></item>
   <item android:title="Playlist" android:id="@+id/menu_playlist"></item>
   <item android:title="Settings" android:id="@+id/menu_settings"></item>
 
