@@ -24,6 +24,8 @@ import android.widget.SeekBar;
 import android.os.Handler;
 import android.graphics.Color;
 import android.util.Log;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
 
 public class MainActivity extends Activity 
 	implements
@@ -38,6 +40,8 @@ public class MainActivity extends Activity
 	private boolean m_notificationsDisabled;
 
 	private static int TIME_UPDATE_INTERVAL = 1000;
+
+	private Receiver m_receiver;
 
     /** Called when the activity is first created. */
     @Override
@@ -60,6 +64,9 @@ public class MainActivity extends Activity
 		ListView lv = (ListView)findViewById(R.id.playListView);
 		lv.setOnItemClickListener(this);
 		registerForContextMenu(lv);
+
+		m_receiver = this.new Receiver();
+		registerReceiver(m_receiver, new IntentFilter(Intent.ACTION_SCREEN_ON));
 
 		tryConnect();
     }
@@ -291,6 +298,14 @@ public class MainActivity extends Activity
 				refreshAll();
 			}
 		});
+	}
+
+	class Receiver extends BroadcastReceiver {
+		public void onReceive(Context ctx, Intent intent) {
+			if (intent.getAction().equals(Intent.ACTION_SCREEN_ON)) {
+				refreshAll();
+			}
+		}
 	}
 
 	private Runnable m_updateTimeTask = new Runnable() {
