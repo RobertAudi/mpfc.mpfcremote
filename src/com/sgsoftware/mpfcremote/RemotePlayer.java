@@ -182,7 +182,7 @@ public class RemotePlayer {
 
 		try
 		{
-			String r = m_respQueue.poll(10, java.util.concurrent.TimeUnit.SECONDS);
+			String r = m_respQueue.poll(1000, java.util.concurrent.TimeUnit.SECONDS);
 			if (r != null)
 				return parseListDir(r);
 		}
@@ -206,7 +206,7 @@ public class RemotePlayer {
 			return;
 		try
 		{
-			String r = m_respQueue.poll(10, java.util.concurrent.TimeUnit.SECONDS);
+			String r = m_respQueue.poll(1000, java.util.concurrent.TimeUnit.SECONDS);
 			if (r != null)
 				parsePlaylist(r);
 		}
@@ -222,7 +222,7 @@ public class RemotePlayer {
 			return;
 		try
 		{
-			String r = m_respQueue.poll(10, java.util.concurrent.TimeUnit.SECONDS);
+			String r = m_respQueue.poll(1000, java.util.concurrent.TimeUnit.SECONDS);
 			if (r != null)
 				parseCurSong(r);
 		}
