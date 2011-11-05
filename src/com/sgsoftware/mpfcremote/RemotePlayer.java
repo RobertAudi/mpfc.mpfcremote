@@ -198,6 +198,12 @@ public class RemotePlayer {
 		m_curSong.curPos += ms/1000;
 	}
 
+	public boolean isPlaying() {
+		if (m_curSong == null)
+			return false;
+		return (m_curSong.status == RemotePlayer.PlayStatus.PLAYING);
+	}
+
 	private void syncPlaylist()
 	{
 		m_totalLength = 0;

@@ -26,6 +26,7 @@ import android.graphics.Color;
 import android.util.Log;
 import android.content.BroadcastReceiver;
 import android.content.IntentFilter;
+import android.telephony.TelephonyManager;
 
 public class MainActivity extends Activity 
 	implements
@@ -65,7 +66,9 @@ public class MainActivity extends Activity
 		registerForContextMenu(lv);
 
 		m_receiver = this.new Receiver();
-		registerReceiver(m_receiver, new IntentFilter(Intent.ACTION_SCREEN_ON));
+		IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
+		filter.addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED);
+		registerReceiver(m_receiver, filter);
 
 		tryConnect();
     }
@@ -300,21 +303,25 @@ public class MainActivity extends Activity
 
 	class Receiver extends BroadcastReceiver {
 		public void onReceive(Context ctx, Intent intent) {
-			if (intent.getAction().equals(Intent.ACTION_SCREEN_ON)) {
+			String action = intent.getAction();
+			if (action.equals(Intent.ACTION_SCREEN_ON)) {
 				refreshAll();
+			}
+			else if (action.equals(TelephonyManager.ACTION_PHONE_STATE_CHANGED)) {
+				String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
+				if (state.equals(TelephonyManager.EXTRA_STATE_RINGING) ||
+						state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
+					refreshAll();
+					if (m_player != null && m_player.isPlaying())
+						m_player.pause();
+				}
 			}
 		}
 	}
 
 	private Runnable m_updateTimeTask = new Runnable() {
 		public void run() {
-			if (m_player == null)
-				return;
-
-			RemotePlayer.CurSong curSong = m_player.getCurSong();
-			if (curSong == null)
-				return;
-			if (curSong.status != RemotePlayer.PlayStatus.PLAYING)
+			if (m_player == null || !m_player.isPlaying())
 				return;
 
 			m_player.incrementCurTime(TIME_UPDATE_INTERVAL);
