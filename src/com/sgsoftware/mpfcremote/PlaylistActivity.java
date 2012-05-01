@@ -23,7 +23,7 @@ import com.sgsoftware.mpfcremote.RemotePlayer;
 import com.sgsoftware.mpfcremote.MainActivity;
 
 public class PlaylistActivity extends ListActivity 
-	implements View.OnClickListener, AdapterView.OnItemClickListener, RemotePlayer.IResponseHandler {
+	implements View.OnClickListener, AdapterView.OnItemClickListener {
 
 	String m_curDir;
 	boolean m_hasParent;
@@ -50,7 +50,7 @@ public class PlaylistActivity extends ListActivity
 		m_entries = new RemotePlayer.DirEntry[] {};
 		refreshGui();
 
-		loadDir();
+		loadDir(false);
 
 	}
 
@@ -91,8 +91,7 @@ public class PlaylistActivity extends ListActivity
 					l--;
 				l = m_curDir.lastIndexOf('/', l) + 1;
 				m_curDir = m_curDir.substring(0, l);
-				loadDir();
-				restoreScrollPos();
+				loadDir(true);
 				return;
 			}
 
@@ -105,23 +104,25 @@ public class PlaylistActivity extends ListActivity
 		rememberScrollPos();
 		m_curDir += m_entries[position].name;
 		m_curDir += "/";
-		loadDir();
+		loadDir(false);
 	}
 	
-	private void loadDir() {
-		MainActivity.getPlayer().listDir(m_curDir, this);
-	}
+	private void loadDir(final boolean shouldRestorePos) {
+		MainActivity.getPlayer().listDir(m_curDir, new RemotePlayer.IResponseHandler() {
+			public void processResponse(String s) {
+				m_entries = MainActivity.getPlayer().parseListDir(s);
+				m_hasParent = !m_curDir.equals("/");
 
-	public void processResponse(String s) {
-		m_entries = MainActivity.getPlayer().parseListDir(s);
-
-		m_hasParent = (m_curDir != "/");
-
-		m_handler.post(new Runnable() {
-			@Override
-			public void run() {
-				refreshGui();
+				m_handler.post(new Runnable() {
+					@Override
+					public void run() {
+						refreshGui();
+						if (shouldRestorePos)
+							restoreScrollPos();
+					}
+				});
 			}
+
 		});
 	}
 
