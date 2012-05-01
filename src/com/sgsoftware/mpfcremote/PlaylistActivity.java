@@ -17,20 +17,25 @@ import android.view.ViewGroup;
 import android.view.LayoutInflater;
 import android.widget.AdapterView;
 import android.content.Context;
+import android.os.Handler;
 
 import com.sgsoftware.mpfcremote.RemotePlayer;
 import com.sgsoftware.mpfcremote.MainActivity;
 
 public class PlaylistActivity extends ListActivity 
-	implements View.OnClickListener, AdapterView.OnItemClickListener {
+	implements View.OnClickListener, AdapterView.OnItemClickListener, RemotePlayer.IResponseHandler {
 
 	String m_curDir;
 	boolean m_hasParent;
 	RemotePlayer.DirEntry[] m_entries;
 
+	private Handler m_handler;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+        m_handler = new Handler();
 
 		setContentView(R.layout.playlist_edit);
 		getListView().setChoiceMode(ListView.CHOICE_MODE_NONE);
@@ -42,8 +47,19 @@ public class PlaylistActivity extends ListActivity
 		m_scrollPositions = new Stack<ScrollPos>();
 
 		m_curDir = "/";
+		m_entries = new RemotePlayer.DirEntry[] {};
+		refreshGui();
+
 		loadDir();
 
+	}
+
+	private void refreshGui() {
+		MyAdapter adapter = new MyAdapter(m_hasParent, m_entries);
+		setListAdapter(adapter);
+		
+		((TextView)findViewById(R.id.playlist_curdir)).setText(m_curDir);
+		getListView().setSelection(0);
 	}
 
 	@Override
@@ -93,19 +109,20 @@ public class PlaylistActivity extends ListActivity
 	}
 	
 	private void loadDir() {
-		getEntries();
+		MainActivity.getPlayer().listDir(m_curDir, this);
+	}
+
+	public void processResponse(String s) {
+		m_entries = MainActivity.getPlayer().parseListDir(s);
 
 		m_hasParent = (m_curDir != "/");
 
-		MyAdapter adapter = new MyAdapter(m_hasParent, m_entries);
-		setListAdapter(adapter);
-		
-		((TextView)findViewById(R.id.playlist_curdir)).setText(m_curDir);
-		getListView().setSelection(0);
-	}
-
-	private void getEntries() {
-		m_entries = MainActivity.getPlayer().listDir(m_curDir);
+		m_handler.post(new Runnable() {
+			@Override
+			public void run() {
+				refreshGui();
+			}
+		});
 	}
 
 	private class ScrollPos {

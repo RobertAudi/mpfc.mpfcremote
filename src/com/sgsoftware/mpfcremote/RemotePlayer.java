@@ -13,14 +13,18 @@ import org.json.JSONTokener;
 
 public class RemotePlayer {
 	
-	Socket m_sock;
-	InputStream m_input;
-	OutputStream m_output;
+	WriteThread m_writeThread;
 
-	ReadThread m_readThread;
+	public interface IResponseHandler
+	{
+		public void processResponse(String s);
+	}
 
-	LinkedBlockingQueue<String> m_respQueue;
-	
+	public interface IRefreshHandler
+	{
+		public void onRefresh();
+	}
+
 	public enum PlayStatus
 	{
 		PLAYING, STOPPED, PAUSED;
@@ -56,80 +60,71 @@ public class RemotePlayer {
 	private CurSong m_curSong;
 	private ArrayList<Song> m_playList;
 	private int m_totalLength;
+
+	private IRefreshHandler m_refreshHandler;
 	
 	public RemotePlayer(String addr, int port,
-						INotificationHandler notificationHandler) 
-			throws java.net.UnknownHostException, java.io.IOException
+						INotificationHandler notificationHandler,
+						IRefreshHandler refreshHandler) 
 	{
-		m_respQueue = new LinkedBlockingQueue<String>();
+		m_refreshHandler = refreshHandler;
+		m_writeThread = new WriteThread(addr, port, notificationHandler);
+		m_writeThread.start();
+	}
 
-		SocketFactory sockFactory = SocketFactory.getDefault();
-		m_sock = sockFactory.createSocket(addr, port);
-		m_input = m_sock.getInputStream();
-		m_output = m_sock.getOutputStream();
-
-		m_readThread = new ReadThread(m_input, m_respQueue, 
-				notificationHandler);
-		m_readThread.start();
-		
-		syncCurSong();
-		syncPlaylist();
+	public boolean isConnected()
+	{
+		return m_writeThread.isConnected();
 	}
 
 	public void destroy()
 	{
-		send("bye\n");
-		try {
-			m_sock.close();
-		}
-		catch (java.io.IOException e)
-		{ }
-		m_readThread.interrupt();
+		m_writeThread.interrupt();
 	}
 
-	public CurSong getCurSong()
+	synchronized public CurSong getCurSong()
 	{
 		return m_curSong;
 	}
 
-	public ArrayList<Song> getPlayList()
+	synchronized public ArrayList<Song> getPlayList()
 	{
 		return m_playList;
 	}
 
-	public int getTotalLength()
+	synchronized public int getTotalLength()
 	{
 		return m_totalLength;
 	}
 	
 	public void pause()
 	{
-		send("pause\n");
+		send("pause\n", null);
 	}
 	
 	public void next()
 	{
-		send("next\n");
+		send("next\n", null);
 	}
 	
 	public void prev()
 	{
-		send("prev\n");
+		send("prev\n", null);
 	}
 	
 	public void timeBack()
 	{
-		send("time_back\n");
+		send("time_back\n", null);
 	}
 
 	public void play(int pos)
 	{
-		send(String.format("play %d\n", pos));
+		send(String.format("play %d\n", pos), null);
 	}
 
 	public void seek(int t)
 	{
-		send(String.format("seek %d\n", t));
+		send(String.format("seek %d\n", t), null);
 	}
 	
 	public void refresh()
@@ -140,7 +135,7 @@ public class RemotePlayer {
 	
 	public void clear()
 	{
-		send("clear_playlist\n");
+		send("clear_playlist\n", null);
 	}
 
 	public void add(String name)
@@ -151,17 +146,17 @@ public class RemotePlayer {
 		name = name.replace("[", "\\[");
 		name = name.replace("]", "\\]");
 		name = name.replace("~", "\\~");
-		send(String.format("add \"%s\"\n", name));
+		send(String.format("add \"%s\"\n", name), null);
 	}
 
 	public void removeSong(int pos)
 	{
-		send(String.format("remove %d\n", pos));
+		send(String.format("remove %d\n", pos), null);
 	}
 
 	public void queueSong(int pos)
 	{
-		send(String.format("queue %d\n", pos));
+		send(String.format("queue %d\n", pos), null);
 	}
 
 	public class DirEntry implements Comparable
@@ -175,21 +170,9 @@ public class RemotePlayer {
 		}
 	}
 
-	DirEntry[] listDir(String dir)
+	void listDir(String dir, IResponseHandler h)
 	{
-		if (!send(String.format("list_dir \"%s\"\n", dir)))
-			return new DirEntry[] {};
-
-		try
-		{
-			String r = m_respQueue.poll(1000, java.util.concurrent.TimeUnit.SECONDS);
-			if (r != null)
-				return parseListDir(r);
-		}
-		catch (java.lang.InterruptedException e)
-		{
-		}
-		return new DirEntry[] {};
+		send(String.format("list_dir \"%s\"\n", dir), h);
 	}
 
 	public void incrementCurTime(int ms) {
@@ -206,41 +189,28 @@ public class RemotePlayer {
 
 	private void syncPlaylist()
 	{
-		m_totalLength = 0;
-
-		if (!send("get_playlist\n"))
-			return;
-		try
-		{
-			String r = m_respQueue.poll(1000, java.util.concurrent.TimeUnit.SECONDS);
-			if (r != null)
-				parsePlaylist(r);
-		}
-		catch (java.lang.InterruptedException e)
-		{
-			return;
-		}
+		send("get_playlist\n", new IResponseHandler() {
+			public void processResponse(String s) {
+				parsePlaylist(s);
+				m_refreshHandler.onRefresh();
+			}
+		});
 	}
 	
 	private void syncCurSong()
 	{
-		if (!send("get_cur_song\n"))
-			return;
-		try
-		{
-			String r = m_respQueue.poll(1000, java.util.concurrent.TimeUnit.SECONDS);
-			if (r != null)
-				parseCurSong(r);
-		}
-		catch (java.lang.InterruptedException e)
-		{
-			return;
-		}
+		send("get_cur_song\n", new IResponseHandler() {
+			public void processResponse(String s) {
+				parseCurSong(s);
+				m_refreshHandler.onRefresh();
+			}
+		});
 	}
 
-	private void parsePlaylist(String s)
+	synchronized private void parsePlaylist(String s)
 	{
 		m_playList = new ArrayList<Song>();
+		m_totalLength = 0;
 
 		try
 		{
@@ -260,7 +230,7 @@ public class RemotePlayer {
 		}
 	}
 
-	private void parseCurSong(String s)
+	synchronized private void parseCurSong(String s)
 	{
 		try
 		{
@@ -278,7 +248,7 @@ public class RemotePlayer {
 		}
 	}
 	
-	private DirEntry[] parseListDir(String s)
+	public DirEntry[] parseListDir(String s)
 	{
 		try
 		{
@@ -300,17 +270,9 @@ public class RemotePlayer {
 		}
 	}
 
-	private boolean send(String s)
+	private void send(String s, IResponseHandler h)
 	{
-		try
-		{
-			m_output.write(s.getBytes());
-			return true;
-		}
-		catch (java.io.IOException e)
-		{
-			return false;
-		}
+		m_writeThread.addRequest(s, h);
 	}
 
 
@@ -322,7 +284,7 @@ public class RemotePlayer {
 	private class ReadThread extends Thread
 	{
 		InputStream m_stream;
-		LinkedBlockingQueue<String> m_respQueue;
+		LinkedBlockingQueue<IResponseHandler> m_respHandlers;
 		INotificationHandler m_notificationHandler;
 		
 		private class Header
@@ -337,12 +299,21 @@ public class RemotePlayer {
 			}
 		}
 
-		public ReadThread(InputStream stream, LinkedBlockingQueue<String> respQueue,
-				          INotificationHandler notificationHandler)
+		public ReadThread(InputStream stream, INotificationHandler notificationHandler)
 		{
 			m_stream = stream;
-			m_respQueue = respQueue;
+			m_respHandlers = new LinkedBlockingQueue<IResponseHandler>();
 			m_notificationHandler = notificationHandler;
+		}
+
+		synchronized public void addResponseHandler(IResponseHandler h)
+		{
+			try {
+				m_respHandlers.put(h);
+			}
+			catch (java.lang.InterruptedException e) {
+				return;
+			}
 		}
 		
 		@Override
@@ -378,7 +349,10 @@ public class RemotePlayer {
 
 			if (h.msgType == MsgType.RESPONSE)
 			{
-				m_respQueue.put(new String(bs));
+				IResponseHandler handler = m_respHandlers.poll();
+				if (handler == null)
+					return;
+				handler.processResponse(new String(bs));
 			}
 			else if (h.msgType == MsgType.NOTIFICATION)
 			{
@@ -451,5 +425,112 @@ public class RemotePlayer {
 			}
 			return true;
 		}
+	}
+
+	private class WriteThread extends Thread
+	{
+		public class Request
+		{
+			public String msg;
+			public IResponseHandler responseHandler;
+		}
+		LinkedBlockingQueue<Request> m_reqQueue;
+
+		boolean m_connected;
+		Socket m_sock;
+		OutputStream m_output;
+		INotificationHandler m_notificationHandler;
+
+		ReadThread m_readThread;
+
+		String m_addr;
+		int m_port;
+		
+		public WriteThread(String addr, int port, INotificationHandler handler)
+		{
+			m_addr = addr;
+			m_port = port;
+
+			m_reqQueue = new LinkedBlockingQueue<Request>();
+			m_connected = false;
+			m_notificationHandler = handler;
+		}
+
+		public boolean isConnected() {
+			return m_connected;
+		}
+
+		synchronized public void addRequest(String msg, IResponseHandler h)
+		{
+			Request r = new Request();
+			r.msg = msg;
+			r.responseHandler = h;
+			try {
+				m_reqQueue.put(r);
+			}
+			catch (java.lang.InterruptedException e) {
+				return;
+			}
+		}
+
+		@Override
+		public void run()
+		{
+			// Try connect to the server
+			InputStream inputStream;
+			try {
+				SocketFactory sockFactory = SocketFactory.getDefault();
+				m_sock = sockFactory.createSocket(m_addr, m_port);
+				m_output = m_sock.getOutputStream();
+				inputStream = m_sock.getInputStream();
+			}
+			catch (java.net.UnknownHostException e) {
+				return;
+			}
+			catch (java.io.IOException e) {
+				return;
+			}
+			m_connected = true;
+
+			// Spawn reader thread
+			m_readThread = new ReadThread(inputStream, m_notificationHandler);
+			m_readThread.start();
+		
+			// Handle requests
+			while (true)
+			{
+				try
+				{
+					Request r = m_reqQueue.poll(3600, java.util.concurrent.TimeUnit.SECONDS);
+					if (r == null)
+						continue;
+
+					try
+					{
+						m_output.write(r.msg.getBytes());
+						if (r.responseHandler != null)
+							m_readThread.addResponseHandler(r.responseHandler);
+					}
+					catch (java.io.IOException e)
+					{
+						continue;
+					}
+				}
+				catch (java.lang.InterruptedException e)
+				{
+					break;
+				}
+			}
+
+			m_readThread.interrupt();
+			try {
+				m_output.write("bye\n".getBytes());
+				m_sock.close();
+			}
+			catch (java.io.IOException e)
+			{ }
+
+		}
+
 	}
 }

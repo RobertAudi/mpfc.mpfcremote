@@ -33,7 +33,8 @@ public class MainActivity extends Activity
 		View.OnClickListener,
 		AdapterView.OnItemClickListener,
 		SeekBar.OnSeekBarChangeListener,
-		INotificationHandler {
+		INotificationHandler,
+        RemotePlayer.IRefreshHandler {
 	private static RemotePlayer m_player;
 	
 	private Handler m_handler;
@@ -164,7 +165,7 @@ public class MainActivity extends Activity
 
 	@Override
 	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-		if (fromUser && m_player != null) {
+		if (fromUser && isConnected()) {
 			m_player.seek(progress);
 		}
 	}
@@ -179,7 +180,7 @@ public class MainActivity extends Activity
 	
 	@Override
 	public void onItemClick(AdapterView<?> a, View v, int position, long id) {
-		if (m_player != null)
+		if (isConnected())
 			m_player.play(position);
 	}
 
@@ -192,7 +193,7 @@ public class MainActivity extends Activity
 			curSong == null ? 0 : curSong.curPos);
 	}
 	
-	private void refresh() {
+	private void refreshGui() {
 		m_handler.removeCallbacks(m_updateTimeTask);
 
 		// Remember play list scrolling position
@@ -202,7 +203,7 @@ public class MainActivity extends Activity
 		int scrollTop = (scrollV == null) ? 0 : scrollV.getTop();
 
 		// Enable/disable controls
-		boolean enabled = (m_player != null);
+		boolean enabled = isConnected();
 		findViewById(R.id.nextBtn).setEnabled(enabled);
 		findViewById(R.id.pauseBtn).setEnabled(enabled);
 		findViewById(R.id.prevBtn).setEnabled(enabled);
@@ -239,10 +240,18 @@ public class MainActivity extends Activity
 		playList.setSelectionFromTop(scrollPos, scrollTop);
 	}
 
+	public void onRefresh() {
+		m_handler.post(new Runnable() {
+			@Override
+			public void run() {
+				refreshGui();
+			}
+		});
+	}
+
 	private void refreshAll() {
-		if (m_player != null)
+		if (isConnected())
 			m_player.refresh();
-		refresh();
 	}
 	
 	private void tryConnect() {
@@ -255,17 +264,17 @@ public class MainActivity extends Activity
 		String remoteAddr = prefs.getString("RemoteAddr", "");
 		String remotePort = prefs.getString("RemotePort", "19792");
 
-		try {
-			m_player = new RemotePlayer(remoteAddr, Integer.parseInt(remotePort), this);
-		}
-		catch (java.net.UnknownHostException e) {
-			m_player = null;
-		}
-		catch (java.io.IOException e) {
-			m_player = null;
-		}
+		m_player = new RemotePlayer(remoteAddr, Integer.parseInt(remotePort), this, this);
+		m_player.refresh();
+		refreshGui();
+	}
 
-		refresh();
+	private boolean isConnected() {
+		return (m_player != null && m_player.isConnected());
+	}
+
+	private boolean isPlaying() {
+		return (isConnected() && m_player.isPlaying());
 	}
 
 	@Override
@@ -312,7 +321,7 @@ public class MainActivity extends Activity
 				if (state.equals(TelephonyManager.EXTRA_STATE_RINGING) ||
 						state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
 					refreshAll();
-					if (m_player != null && m_player.isPlaying())
+					if (isPlaying())
 						m_player.pause();
 				}
 			}
@@ -321,7 +330,7 @@ public class MainActivity extends Activity
 
 	private Runnable m_updateTimeTask = new Runnable() {
 		public void run() {
-			if (m_player == null || !m_player.isPlaying())
+			if (!isPlaying())
 				return;
 
 			m_player.incrementCurTime(TIME_UPDATE_INTERVAL);
@@ -344,7 +353,7 @@ public class MainActivity extends Activity
 
 		@Override
 		public int getCount() {
-			return m_player.getPlayList().size();
+			return (m_player.getPlayList() == null ? 0 : m_player.getPlayList().size());
 		}
 
 		@Override
