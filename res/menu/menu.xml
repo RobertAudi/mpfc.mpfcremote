@@ -2,7 +2,45 @@
 <menu
   xmlns:android="http://schemas.android.com/apk/res/android">
   <item android:title="Reconnect" android:id="@+id/menu_reconnect"></item>
-  <item android:title="Refresh" android:id="@+id/menu_refresh"></item>
+  <item
+	  android:title="Previous"
+	  android:id="@+id/menu_prev"
+	  android:icon="@drawable/ic_media_previous"
+	  android:showAsAction="always">
+  </item>
+  <item
+	  android:title="Play"
+	  android:id="@+id/menu_play"
+	  android:icon="@drawable/ic_media_play"
+	  android:visible="false"
+	  android:showAsAction="always">
+  </item>
+  <item
+	  android:title="Pause"
+	  android:id="@+id/menu_pause"
+	  android:icon="@drawable/ic_media_pause"
+	  android:showAsAction="always">
+  </item>
+  <item
+	  android:title="Next"
+	  android:id="@+id/menu_next"
+	  android:icon="@drawable/ic_media_next"
+	  android:showAsAction="always">
+  </item>
+  <item
+	  android:title="Refresh"
+	  android:id="@+id/menu_refresh"
+	  android:icon="@drawable/ic_menu_refresh"
+	  android:showAsAction="ifRoom">
+  </item>
+  <item
+	  android:title="Back"
+	  android:id="@+id/menu_back">
+  </item>
+  <item
+	  android:title="Center view"
+	  android:id="@+id/menu_center">
+  </item>
   <item android:title="Playlist" android:id="@+id/menu_playlist"></item>
   <item android:title="Settings" android:id="@+id/menu_settings"></item>
 

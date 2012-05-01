@@ -40,38 +40,6 @@
     android:text=""
     />
 
-<LinearLayout 
-    android:orientation="horizontal"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    >
-<Button android:id="@+id/prevBtn" 
-    android:layout_width="wrap_content" 
-    android:layout_height="fill_parent" 
-	android:text="&lt;&lt;"
-    />
-<Button android:id="@+id/pauseBtn" 
-    android:layout_width="wrap_content" 
-    android:layout_height="fill_parent" 
-    android:text="||"
-    />
-<Button android:id="@+id/nextBtn" 
-    android:layout_width="wrap_content" 
-    android:layout_height="fill_parent" 
-	android:text="&gt;&gt;"
-    />
-<Button android:id="@+id/backBtn" 
-    android:layout_width="wrap_content" 
-    android:layout_height="fill_parent" 
-	android:text="&lt;-"
-    />
-<Button android:id="@+id/centerBtn" 
-    android:layout_width="wrap_content" 
-    android:layout_height="fill_parent" 
-    android:text="C"
-    />
-</LinearLayout>
-
 <ListView android:id="@+id/playListView" 
     android:layout_width="fill_parent" 
     android:layout_height="fill_parent" 

@@ -30,7 +30,6 @@ import android.telephony.TelephonyManager;
 
 public class MainActivity extends Activity 
 	implements
-		View.OnClickListener,
 		AdapterView.OnItemClickListener,
 		SeekBar.OnSeekBarChangeListener,
 		INotificationHandler,
@@ -55,11 +54,6 @@ public class MainActivity extends Activity
         
         m_handler = new Handler();
 
-		((Button)findViewById(R.id.pauseBtn)).setOnClickListener(this);
-		((Button)findViewById(R.id.nextBtn)).setOnClickListener(this);
-		((Button)findViewById(R.id.prevBtn)).setOnClickListener(this);
-		((Button)findViewById(R.id.backBtn)).setOnClickListener(this);
-		((Button)findViewById(R.id.centerBtn)).setOnClickListener(this);
 		((SeekBar)findViewById(R.id.seekBar)).setOnSeekBarChangeListener(this);
 
 		ListView lv = (ListView)findViewById(R.id.playListView);
@@ -83,23 +77,53 @@ public class MainActivity extends Activity
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		if (item.getItemId() == R.id.menu_settings) {
+		switch (item.getItemId()) {
+		case R.id.menu_settings: {
 			Intent intent = new Intent()
 				.setClass(this, com.sgsoftware.mpfcremote.PrefActivity.class);
 			this.startActivityForResult(intent, 0);
+			break;
 		}
-		else if (item.getItemId() == R.id.menu_playlist) {
+		case R.id.menu_playlist: {
 			m_notificationsDisabled = true;
 			Intent intent = new Intent()
 				.setClass(this, com.sgsoftware.mpfcremote.PlaylistActivity.class);
 			this.startActivityForResult(intent, 0);
 			m_notificationsDisabled = false;
+			break;
 		}
-		else if (item.getItemId() == R.id.menu_reconnect) {
+		case R.id.menu_reconnect:
 			tryConnect();
-		}
-		else if (item.getItemId() == R.id.menu_refresh) {
+			break;
+		case R.id.menu_refresh:
 			refreshAll();
+			break;
+		case R.id.menu_pause:
+		case R.id.menu_play:
+			m_player.pause();
+			break;
+		case R.id.menu_next:
+			m_player.next();
+			break;
+		case R.id.menu_prev:
+			m_player.prev();
+			break;
+		case R.id.menu_back:
+			m_player.timeBack();
+			break;
+		case R.id.menu_center: {
+			RemotePlayer.CurSong curSong = m_player.getCurSong();
+			if (curSong != null) {
+				ListView playList = (ListView)findViewById(R.id.playListView);
+				int scrollPos = curSong.posInList;
+				scrollPos -= (playList.getLastVisiblePosition() - 
+						playList.getFirstVisiblePosition() + 1) / 2;
+				if (scrollPos < 0)
+					scrollPos = 0;
+				playList.setSelectionFromTop(scrollPos, 0);
+			}
+			break;
+		}
 		}
 		return true;
 	}
@@ -110,6 +134,21 @@ public class MainActivity extends Activity
 		super.onCreateContextMenu(menu, v, info);
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.playlist_context, menu);
+	}
+
+	@Override
+	public boolean onPrepareOptionsMenu(Menu m) {
+		boolean enabled = isConnected();
+		boolean playing = isPlaying();
+		m.findItem(R.id.menu_next).setEnabled(enabled);
+		m.findItem(R.id.menu_pause).setEnabled(enabled);
+		m.findItem(R.id.menu_pause).setVisible(playing);
+		m.findItem(R.id.menu_play).setEnabled(enabled);
+		m.findItem(R.id.menu_play).setVisible(!playing);
+		m.findItem(R.id.menu_prev).setEnabled(enabled);
+		m.findItem(R.id.menu_back).setEnabled(enabled);
+		m.findItem(R.id.menu_center).setEnabled(enabled);
+		return true;
 	}
 
 	@Override
@@ -129,38 +168,6 @@ public class MainActivity extends Activity
 	@Override
 	public void onActivityResult(int reqCode, int resCode, Intent data) {
 		super.onActivityResult(reqCode, resCode, data);
-	}
-
-	@Override
-	public void onClick(View target) {
-		switch (target.getId()) {
-		case R.id.pauseBtn:
-			m_player.pause();
-			break;
-		case R.id.nextBtn:
-			m_player.next();
-			break;
-		case R.id.prevBtn:
-			m_player.prev();
-			break;
-		case R.id.backBtn:
-			m_player.timeBack();
-			break;
-		case R.id.centerBtn:
-		{
-			RemotePlayer.CurSong curSong = m_player.getCurSong();
-			if (curSong != null) {
-				ListView playList = (ListView)findViewById(R.id.playListView);
-				int scrollPos = curSong.posInList;
-				scrollPos -= (playList.getLastVisiblePosition() - 
-						playList.getFirstVisiblePosition() + 1) / 2;
-				if (scrollPos < 0)
-					scrollPos = 0;
-				playList.setSelectionFromTop(scrollPos, 0);
-			}
-			break;
-		}
-		}
 	}
 
 	@Override
@@ -204,12 +211,8 @@ public class MainActivity extends Activity
 
 		// Enable/disable controls
 		boolean enabled = isConnected();
-		findViewById(R.id.nextBtn).setEnabled(enabled);
-		findViewById(R.id.pauseBtn).setEnabled(enabled);
-		findViewById(R.id.prevBtn).setEnabled(enabled);
-		findViewById(R.id.backBtn).setEnabled(enabled);
-		findViewById(R.id.centerBtn).setEnabled(enabled);
 		findViewById(R.id.seekBar).setEnabled(enabled);
+		invalidateOptionsMenu();
 		if (enabled) {
 			int totalLength = m_player.getTotalLength();
 			((TextView)findViewById(R.id.totalLength)).setText(
