@@ -173,7 +173,7 @@ public class MainActivity extends Activity
 	@Override
 	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 		if (fromUser && isConnected()) {
-			m_player.seek(progress);
+			m_player.seek((long)progress * 1000000);
 		}
 	}
 	
@@ -193,11 +193,13 @@ public class MainActivity extends Activity
 
 	private void updateCurTimeView() {
 		RemotePlayer.CurSong curSong = m_player.getCurSong();
+		int msPos = curSong == null ? 0 : (int)(curSong.curPos / 1000000);
+		int sPos = msPos / 1000;
+		int sLen = curSong == null ? 0 : (int)(curSong.length / 1000000000);
 		((TextView)findViewById(R.id.curTimeTextView)).setText(curSong == null ? "" :
-			String.format("%d:%02d / %d:%02d", curSong.curPos / 60, curSong.curPos % 60,
-				curSong.length / 60, curSong.length % 60));
+			String.format("%d:%02d / %d:%02d", sPos / 60, sPos % 60, sLen / 60, sLen % 60));
 		((SeekBar)findViewById(R.id.seekBar)).setProgress(
-			curSong == null ? 0 : curSong.curPos);
+			curSong == null ? 0 : msPos);
 	}
 	
 	private void refreshGui() {
@@ -214,7 +216,7 @@ public class MainActivity extends Activity
 		findViewById(R.id.seekBar).setEnabled(enabled);
 		invalidateOptionsMenu();
 		if (enabled) {
-			int totalLength = m_player.getTotalLength();
+			int totalLength = (int)(m_player.getTotalLength() / 1000000000);
 			((TextView)findViewById(R.id.totalLength)).setText(
 				String.format("Total length: %d:%02d",
 					totalLength / 60, totalLength % 60));
@@ -224,7 +226,7 @@ public class MainActivity extends Activity
 				String.format("%d. %s", curSong.posInList + 1, curSong.title));
 
 			((SeekBar)findViewById(R.id.seekBar)).setMax(
-				curSong == null ? 0 : curSong.length);
+				curSong == null ? 0 : (int)(curSong.length / 1000000));
 
 			updateCurTimeView();
 			m_handler.postDelayed(m_updateTimeTask, TIME_UPDATE_INTERVAL);
@@ -381,7 +383,8 @@ public class MainActivity extends Activity
 
 			RemotePlayer.Song s = m_player.getPlayList().get(position);
 			tv_title.setText(String.format("%d. %s", position + 1, s.name));
-			tv_len.setText(String.format("%d:%02d", s.length / 60, s.length % 60));
+			int len = (int)(s.length / 1000000000);
+			tv_len.setText(String.format("%d:%02d", len / 60, len % 60));
 
 			int col = (m_player.getCurSong() != null && 
 					   position == m_player.getCurSong().posInList) ?

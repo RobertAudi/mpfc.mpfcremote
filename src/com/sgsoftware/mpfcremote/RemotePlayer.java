@@ -45,8 +45,8 @@ public class RemotePlayer {
 	public class CurSong
 	{
 		String title;
-		int length;
-		int curPos;
+		long length;
+		long curPos;
 		int posInList;
 		PlayStatus status;
 	}
@@ -54,12 +54,12 @@ public class RemotePlayer {
 	public class Song
 	{
 		String name;
-		int length;
+		long length;
 	}
 
 	private CurSong m_curSong;
 	private ArrayList<Song> m_playList;
-	private int m_totalLength;
+	private long m_totalLength;
 
 	private IRefreshHandler m_refreshHandler;
 	
@@ -92,7 +92,7 @@ public class RemotePlayer {
 		return m_playList;
 	}
 
-	synchronized public int getTotalLength()
+	synchronized public long getTotalLength()
 	{
 		return m_totalLength;
 	}
@@ -122,7 +122,7 @@ public class RemotePlayer {
 		send(String.format("play %d\n", pos), null);
 	}
 
-	public void seek(int t)
+	public void seek(long t)
 	{
 		send(String.format("seek %d\n", t), null);
 	}
@@ -178,7 +178,7 @@ public class RemotePlayer {
 	public void incrementCurTime(int ms) {
 		if (m_curSong == null)
 			return;
-		m_curSong.curPos += ms/1000;
+		m_curSong.curPos += (long)ms * 1000000;
 	}
 
 	public boolean isPlaying() {
@@ -220,7 +220,7 @@ public class RemotePlayer {
 				JSONObject obj = js.getJSONObject(i);
 				Song song = new Song();
 				song.name = obj.getString("title");
-				song.length = obj.getInt("length");
+				song.length = obj.getLong("length");
 				m_totalLength += song.length;
 				m_playList.add(song);
 			}
@@ -237,8 +237,8 @@ public class RemotePlayer {
 			JSONObject js = new JSONObject(new JSONTokener(s));
 			m_curSong = new CurSong();
 			m_curSong.title = js.getString("title");
-			m_curSong.length = js.getInt("length");
-			m_curSong.curPos = js.getInt("time");
+			m_curSong.length = js.getLong("length");
+			m_curSong.curPos = js.getLong("time");
 			m_curSong.posInList = js.getInt("position");
 			m_curSong.status = PlayStatus.parse(js.getString("play_status"));
 		}
