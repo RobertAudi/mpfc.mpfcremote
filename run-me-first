@@ -1,2 +1,2 @@
 #!/bin/bash
-android update project -n MPFCRemote -p .
+android update project --name MPFCRemote --path . --target android-15
