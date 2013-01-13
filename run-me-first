@@ -1,0 +1,2 @@
+#!/bin/bash
+android update project -n MPFCRemote -p .
