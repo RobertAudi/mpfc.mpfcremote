@@ -60,6 +60,7 @@ public class RemotePlayer {
 	private CurSong m_curSong;
 	private ArrayList<Song> m_playList;
 	private long m_totalLength;
+	private double m_volume;
 
 	private IRefreshHandler m_refreshHandler;
 	
@@ -97,6 +98,11 @@ public class RemotePlayer {
 		return m_totalLength;
 	}
 	
+	synchronized public double getVolume()
+	{
+		return m_volume;
+	}
+	
 	public void pause()
 	{
 		send("pause\n", null);
@@ -131,11 +137,18 @@ public class RemotePlayer {
 	{
 		syncCurSong();
 		syncPlaylist();
+		syncVolume();
 	}
 	
 	public void clear()
 	{
 		send("clear_playlist\n", null);
+	}
+
+	public void setVolume(double v)
+	{
+		m_volume = v;
+		send(String.format("set_volume %f\n", v), null);
 	}
 
 	public void add(String name)
@@ -207,6 +220,16 @@ public class RemotePlayer {
 		});
 	}
 
+	private void syncVolume()
+	{
+		send("get_volume\n", new IResponseHandler() {
+			public void processResponse(String s) {
+				parseVolume(s);
+				m_refreshHandler.onRefresh();
+			}
+		});
+	}
+
 	synchronized private void parsePlaylist(String s)
 	{
 		m_playList = new ArrayList<Song>();
@@ -245,6 +268,19 @@ public class RemotePlayer {
 		catch (org.json.JSONException e)
 		{
 			m_curSong = null;
+		}
+	}
+	
+	synchronized private void parseVolume(String s)
+	{
+		try
+		{
+			JSONObject js = new JSONObject(new JSONTokener(s));
+			m_volume = js.getDouble("volume");
+		}
+		catch (org.json.JSONException e)
+		{
+			m_volume = 1;
 		}
 	}
 	

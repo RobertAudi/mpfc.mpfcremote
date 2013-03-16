@@ -21,14 +21,21 @@ import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.AdapterView;
 import android.widget.SeekBar;
+import android.widget.CheckBox;
 import android.os.Handler;
 import android.graphics.Color;
 import android.util.Log;
 import android.content.BroadcastReceiver;
 import android.content.IntentFilter;
 import android.telephony.TelephonyManager;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.DialogFragment;
+import android.content.DialogInterface;
+import android.app.Dialog;
+import android.app.AlertDialog;
 
-public class MainActivity extends Activity 
+public class MainActivity extends FragmentActivity 
 	implements
 		AdapterView.OnItemClickListener,
 		SeekBar.OnSeekBarChangeListener,
@@ -90,6 +97,12 @@ public class MainActivity extends Activity
 				.setClass(this, com.sgsoftware.mpfcremote.PlaylistActivity.class);
 			this.startActivityForResult(intent, 0);
 			m_notificationsDisabled = false;
+			break;
+		}
+		case R.id.menu_volume: {
+			DialogFragment frag = new VolumeDialogFragment(m_player);
+			FragmentManager m = getSupportFragmentManager();
+			frag.show(m, "volume");
 			break;
 		}
 		case R.id.menu_reconnect:
@@ -393,5 +406,75 @@ public class MainActivity extends Activity
 			tv_len.setTextColor(col);
 			return vg;
 		}
+	}
+
+	private class VolumeDialogFragment extends DialogFragment
+		implements
+			SeekBar.OnSeekBarChangeListener, View.OnClickListener {
+
+		private RemotePlayer m_player;
+		private SeekBar sb_vol;
+		private CheckBox cb_def;
+		private double m_origVol;
+
+		public VolumeDialogFragment(RemotePlayer player) {
+			m_player = player;
+		}
+
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState) {
+			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+			LayoutInflater inflater = getActivity().getLayoutInflater();
+			ViewGroup vg = (ViewGroup)inflater.inflate(R.layout.volume, null);
+
+			sb_vol = (SeekBar)vg.findViewById(R.id.volume_seekBar);
+			cb_def = (CheckBox)vg.findViewById(R.id.volume_setDefault);
+
+			m_origVol = m_player.getVolume();
+
+			sb_vol.setOnSeekBarChangeListener(this);
+			cb_def.setOnClickListener(this);
+			sb_vol.setProgress((int)(m_origVol * 1000000));
+			cb_def.setChecked(m_player.getVolume() == 1);
+
+			builder.setView(vg)
+				   .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+					   public void onClick(DialogInterface dialog, int id) {
+					   }
+				   })
+				   .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+					   public void onClick(DialogInterface dialog, int id) {
+					   		m_player.setVolume(m_origVol);
+					   }
+				   });
+			return builder.create();
+		}
+
+		@Override
+		public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+			if (fromUser && isConnected()) {
+				double v = (double)progress / 1000000;
+				m_player.setVolume(v);
+				cb_def.setChecked(v == 1);
+			}
+		}
+		
+		@Override
+		public void onStartTrackingTouch(SeekBar seekBar) {
+		}
+		
+		@Override
+		public void onStopTrackingTouch(SeekBar seekBar) {
+		}
+	
+		@Override
+		public void onClick(View view) {
+			if (view == cb_def) {
+				double v = 1;
+				sb_vol.setProgress((int)(v * 1000000));
+				m_player.setVolume(v);
+			}
+		}
+	
 	}
 }
