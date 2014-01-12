@@ -225,7 +225,6 @@ public class RemotePlayer {
 		send("get_volume\n", new IResponseHandler() {
 			public void processResponse(String s) {
 				parseVolume(s);
-				m_refreshHandler.onRefresh();
 			}
 		});
 	}
