@@ -22,7 +22,12 @@ public class RemotePlayer {
 
 	public interface IRefreshHandler
 	{
-		public void onRefresh();
+		public void onRefresh(Object refreshParam);
+	}
+
+	public interface IOnConnectedHandler
+	{
+		public void onConnected();
 	}
 
 	public enum PlayStatus
@@ -66,10 +71,11 @@ public class RemotePlayer {
 	
 	public RemotePlayer(String addr, int port,
 						INotificationHandler notificationHandler,
-						IRefreshHandler refreshHandler) 
+						IRefreshHandler refreshHandler,
+						IOnConnectedHandler onConnectedHandler) 
 	{
 		m_refreshHandler = refreshHandler;
-		m_writeThread = new WriteThread(addr, port, notificationHandler);
+		m_writeThread = new WriteThread(addr, port, notificationHandler, onConnectedHandler);
 		m_writeThread.start();
 	}
 
@@ -133,10 +139,10 @@ public class RemotePlayer {
 		send(String.format("seek %d\n", t), null);
 	}
 	
-	public void refresh()
+	public void refresh(Object refreshParam)
 	{
 		syncCurSong();
-		syncPlaylist();
+		syncPlaylist(refreshParam);
 		syncVolume();
 	}
 	
@@ -200,12 +206,13 @@ public class RemotePlayer {
 		return (m_curSong.status == RemotePlayer.PlayStatus.PLAYING);
 	}
 
-	private void syncPlaylist()
+	private void syncPlaylist(final Object refreshParam)
 	{
 		send("get_playlist\n", new IResponseHandler() {
 			public void processResponse(String s) {
 				parsePlaylist(s);
-				m_refreshHandler.onRefresh();
+				if (m_refreshHandler != null)
+					m_refreshHandler.onRefresh(refreshParam);
 			}
 		});
 	}
@@ -215,7 +222,8 @@ public class RemotePlayer {
 		send("get_cur_song\n", new IResponseHandler() {
 			public void processResponse(String s) {
 				parseCurSong(s);
-				m_refreshHandler.onRefresh();
+
+				// Don't call onRefresh here; it will be called in syncPlaylist
 			}
 		});
 	}
@@ -391,7 +399,8 @@ public class RemotePlayer {
 			}
 			else if (h.msgType == MsgType.NOTIFICATION)
 			{
-				m_notificationHandler.processNotification(new String(bs));
+				if (m_notificationHandler != null)
+					m_notificationHandler.processNotification(new String(bs));
 			}
 		}
 
@@ -475,13 +484,15 @@ public class RemotePlayer {
 		Socket m_sock;
 		OutputStream m_output;
 		INotificationHandler m_notificationHandler;
+		IOnConnectedHandler m_onConnectedHandler;
 
 		ReadThread m_readThread;
 
 		String m_addr;
 		int m_port;
 		
-		public WriteThread(String addr, int port, INotificationHandler handler)
+		public WriteThread(String addr, int port, INotificationHandler handler,
+				           IOnConnectedHandler onConnectedHandler)
 		{
 			m_addr = addr;
 			m_port = port;
@@ -489,6 +500,7 @@ public class RemotePlayer {
 			m_reqQueue = new LinkedBlockingQueue<Request>();
 			m_connected = false;
 			m_notificationHandler = handler;
+			m_onConnectedHandler = onConnectedHandler;
 		}
 
 		public boolean isConnected() {
@@ -526,6 +538,9 @@ public class RemotePlayer {
 				return;
 			}
 			m_connected = true;
+
+			if (m_onConnectedHandler != null)
+				m_onConnectedHandler.onConnected();
 
 			// Spawn reader thread
 			m_readThread = new ReadThread(inputStream, m_notificationHandler);

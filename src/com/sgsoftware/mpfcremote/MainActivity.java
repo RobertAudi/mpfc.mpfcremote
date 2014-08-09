@@ -41,7 +41,7 @@ public class MainActivity extends FragmentActivity
 		SeekBar.OnSeekBarChangeListener,
 		INotificationHandler,
         RemotePlayer.IRefreshHandler {
-	private static RemotePlayer m_player;
+	private RemotePlayer m_player;
 	
 	private Handler m_handler;
 	
@@ -51,12 +51,31 @@ public class MainActivity extends FragmentActivity
 
 	private Receiver m_receiver;
 
+	// The scroll position to be restored in onRestore
+	class ScrollPos {
+		int pos;
+		int top;
+
+		ScrollPos(int p, int t) {
+			this.pos = p;
+			this.top = t;
+		}
+	};
+	private ScrollPos m_scrollPos;
+
+	@Override
+	public void onSaveInstanceState(Bundle savedInstanceState) {
+		super.onSaveInstanceState(savedInstanceState);
+		savedInstanceState.putInt("scrollPos", m_scrollPos.pos);
+		savedInstanceState.putInt("scrollTop", m_scrollPos.top);
+	}
+	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-        
+
         m_notificationsDisabled = false;
         
         m_handler = new Handler();
@@ -72,8 +91,31 @@ public class MainActivity extends FragmentActivity
 		filter.addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED);
 		registerReceiver(m_receiver, filter);
 
-		tryConnect();
+		if (savedInstanceState != null) {
+			m_scrollPos = new ScrollPos(savedInstanceState.getInt("scrollPos"),
+					                    savedInstanceState.getInt("scrollTop"));
+		}
     }
+
+    @Override
+	public void onResume() {
+		super.onResume();
+
+		tryConnect(m_scrollPos);
+	}
+
+    @Override
+	public void onPause() {
+		super.onPause();
+
+		m_scrollPos = getScrollPos();
+
+		m_handler.removeCallbacks(m_updateTimeTask);
+		if (m_player != null) {
+			m_player.destroy();
+			m_player = null;
+		}
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -106,10 +148,10 @@ public class MainActivity extends FragmentActivity
 			break;
 		}
 		case R.id.menu_reconnect:
-			tryConnect();
+			tryConnect(null);
 			break;
 		case R.id.menu_refresh:
-			refreshAll();
+			refreshAll(null);
 			break;
 		case R.id.menu_pause:
 		case R.id.menu_play:
@@ -214,8 +256,19 @@ public class MainActivity extends FragmentActivity
 		((SeekBar)findViewById(R.id.seekBar)).setProgress(
 			curSong == null ? 0 : msPos);
 	}
+
+	private ScrollPos getScrollPos() {
+		ListView playList = (ListView)findViewById(R.id.playListView);
+		if (playList == null)
+			return null;
+
+		int scrollPos = playList.getFirstVisiblePosition();
+		View scrollV = playList.getChildAt(0);
+		int scrollTop = (scrollV == null) ? 0 : scrollV.getTop();
+		return new ScrollPos(scrollPos, scrollTop);
+	}
 	
-	private void refreshGui() {
+	private void refreshGui(Object param) {
 		m_handler.removeCallbacks(m_updateTimeTask);
 
 		// Remember play list scrolling position
@@ -223,6 +276,13 @@ public class MainActivity extends FragmentActivity
 		int scrollPos = playList.getFirstVisiblePosition();
 		View scrollV = playList.getChildAt(0);
 		int scrollTop = (scrollV == null) ? 0 : scrollV.getTop();
+
+		// Get scroll position from the param if it was passed
+		if (param != null) {
+			ScrollPos sp = (ScrollPos)param;
+			scrollPos = sp.pos;
+			scrollTop = sp.top;
+		}
 
 		// Enable/disable controls
 		boolean enabled = isConnected();
@@ -258,21 +318,21 @@ public class MainActivity extends FragmentActivity
 		playList.setSelectionFromTop(scrollPos, scrollTop);
 	}
 
-	public void onRefresh() {
+	public void onRefresh(final Object param) {
 		m_handler.post(new Runnable() {
 			@Override
 			public void run() {
-				refreshGui();
+				refreshGui(param);
 			}
 		});
 	}
 
-	private void refreshAll() {
+	private void refreshAll(Object refreshParam) {
 		if (isConnected())
-			m_player.refresh();
+			m_player.refresh(refreshParam);
 	}
 	
-	private void tryConnect() {
+	private void tryConnect(final Object refreshParam) {
 		if (m_player != null) {
 			m_player.destroy();
 			m_player = null;
@@ -282,9 +342,13 @@ public class MainActivity extends FragmentActivity
 		String remoteAddr = prefs.getString("RemoteAddr", "");
 		String remotePort = prefs.getString("RemotePort", "19792");
 
-		m_player = new RemotePlayer(remoteAddr, Integer.parseInt(remotePort), this, this);
-		m_player.refresh();
-		refreshGui();
+		m_player = new RemotePlayer(remoteAddr, Integer.parseInt(remotePort), this, this,
+				new RemotePlayer.IOnConnectedHandler() {
+					@Override 
+					public void onConnected() {
+						refreshAll(refreshParam);
+					}
+				});
 	}
 
 	private boolean isConnected() {
@@ -295,27 +359,6 @@ public class MainActivity extends FragmentActivity
 		return (isConnected() && m_player.isPlaying());
 	}
 
-	@Override
-	protected void onStop() {
-		super.onStop();
-		m_handler.removeCallbacks(m_updateTimeTask);
-	}
-
-	@Override
-	protected void onRestart() {
-		super.onRestart();
-		refreshAll();
-	}
-
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-		if (m_player != null) {
-			m_player.destroy();
-			m_player = null;
-		}
-	}
-
 	public void processNotification(String msg) {
 		if (m_notificationsDisabled)
 			return;
@@ -323,7 +366,7 @@ public class MainActivity extends FragmentActivity
 		m_handler.post(new Runnable() {
 			@Override
 			public void run() {
-				refreshAll();
+				refreshAll(null);
 			}
 		});
 	}
@@ -332,13 +375,13 @@ public class MainActivity extends FragmentActivity
 		public void onReceive(Context ctx, Intent intent) {
 			String action = intent.getAction();
 			if (action.equals(Intent.ACTION_SCREEN_ON)) {
-				refreshAll();
+				refreshAll(null);
 			}
 			else if (action.equals(TelephonyManager.ACTION_PHONE_STATE_CHANGED)) {
 				String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
 				if (state.equals(TelephonyManager.EXTRA_STATE_RINGING) ||
 						state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
-					refreshAll();
+					refreshAll(null);
 					if (isPlaying())
 						m_player.pause();
 				}
@@ -357,10 +400,6 @@ public class MainActivity extends FragmentActivity
 			m_handler.postDelayed(this, TIME_UPDATE_INTERVAL);
 		}
 	};
-
-	public static RemotePlayer getPlayer() {
-		return m_player;
-	}
 
 	private class MyAdapter extends BaseAdapter {
 		private RemotePlayer m_player;

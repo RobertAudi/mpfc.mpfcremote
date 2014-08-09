@@ -5,6 +5,7 @@ import java.util.Stack;
 
 import android.os.Bundle;
 import android.app.ListActivity;
+import android.content.SharedPreferences;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
@@ -28,9 +29,10 @@ public class PlaylistActivity extends ListActivity
 	String m_curDir;
 	boolean m_hasParent;
 	RemotePlayer.DirEntry[] m_entries;
+	RemotePlayer m_player;
 
 	private Handler m_handler;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -49,9 +51,38 @@ public class PlaylistActivity extends ListActivity
 		m_curDir = "/";
 		m_entries = new RemotePlayer.DirEntry[] {};
 		refreshGui();
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+
+		if (m_player != null) {
+			m_player.destroy();
+			m_player = null;
+		}
+
+		SharedPreferences prefs = getSharedPreferences("com.sgsoftware.mpfcremote_preferences", 0);
+		String remoteAddr = prefs.getString("RemoteAddr", "");
+		String remotePort = prefs.getString("RemotePort", "19792");
+
+		m_player = new RemotePlayer(remoteAddr, Integer.parseInt(remotePort), 
+				null, null, null);
+		m_player.refresh(null);
 
 		loadDir(false);
 
+		refreshGui();
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+
+		if (m_player != null) {
+			m_player.destroy();
+			m_player = null;
+		}
 	}
 
 	private void refreshGui() {
@@ -66,7 +97,7 @@ public class PlaylistActivity extends ListActivity
 	public void onClick(View target) {
 		switch (target.getId()) {
 		case R.id.playlist_clear: {
-			MainActivity.getPlayer().clear();
+			m_player.clear();
 			break;
 		}
 		case R.id.playlist_add: {
@@ -74,7 +105,7 @@ public class PlaylistActivity extends ListActivity
 			int count = bs.length();
 			for ( int i = 0; i < count; i++ ) {
 				if (bs.get(i))
-					MainActivity.getPlayer().add(m_curDir + "/" + m_entries[i].name);
+					m_player.add(m_curDir + "/" + m_entries[i].name);
 			}
 			break;
 		}
@@ -108,9 +139,9 @@ public class PlaylistActivity extends ListActivity
 	}
 	
 	private void loadDir(final boolean shouldRestorePos) {
-		MainActivity.getPlayer().listDir(m_curDir, new RemotePlayer.IResponseHandler() {
+		m_player.listDir(m_curDir, new RemotePlayer.IResponseHandler() {
 			public void processResponse(String s) {
-				m_entries = MainActivity.getPlayer().parseListDir(s);
+				m_entries = m_player.parseListDir(s);
 				m_hasParent = !m_curDir.equals("/");
 
 				m_handler.post(new Runnable() {
