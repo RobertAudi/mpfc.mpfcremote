@@ -17,14 +17,14 @@
             </intent-filter>
         </activity>
         <activity android:name=".PrefActivity"
-                  android:label="PrefActivity">
+                  android:label="Preferences">
             <intent-filter>
                 <action android:name="com.sgsoftware.mpfcremote.intent.action.Prefs" />
                 <category android:name="android.intent.category.PREFERENCE" />
             </intent-filter>
         </activity>
         <activity android:name=".PlaylistActivity"
-			android:label="PlaylistActivity" />
+			android:label="Edit playlist" />
 
     </application>
 
