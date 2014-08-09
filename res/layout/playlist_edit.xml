@@ -27,6 +27,9 @@
 <Button android:id="@+id/playlist_clear" android:layout_width="wrap_content"
 	android:layout_height="wrap_content" android:text="Clear" />
 	
+<Button android:id="@+id/playlist_up" android:layout_width="wrap_content"
+	android:layout_height="wrap_content" android:text="Up" />
+	
 </LinearLayout>
 
 </LinearLayout>

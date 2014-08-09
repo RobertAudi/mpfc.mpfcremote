@@ -19,6 +19,7 @@ import android.view.LayoutInflater;
 import android.widget.AdapterView;
 import android.content.Context;
 import android.os.Handler;
+import android.util.Log;
 
 import com.sgsoftware.mpfcremote.RemotePlayer;
 import com.sgsoftware.mpfcremote.MainActivity;
@@ -44,6 +45,7 @@ public class PlaylistActivity extends ListActivity
 
 		((Button)findViewById(R.id.playlist_add)).setOnClickListener(this);
 		((Button)findViewById(R.id.playlist_clear)).setOnClickListener(this);
+		((Button)findViewById(R.id.playlist_up)).setOnClickListener(this);
 		getListView().setOnItemClickListener(this);
 
 		m_scrollPositions = new Stack<ScrollPos>();
@@ -86,7 +88,7 @@ public class PlaylistActivity extends ListActivity
 	}
 
 	private void refreshGui() {
-		MyAdapter adapter = new MyAdapter(m_hasParent, m_entries);
+		MyAdapter adapter = new MyAdapter(m_entries);
 		setListAdapter(adapter);
 		
 		((TextView)findViewById(R.id.playlist_curdir)).setText(m_curDir);
@@ -109,26 +111,23 @@ public class PlaylistActivity extends ListActivity
 			}
 			break;
 		}
-			
+		case R.id.playlist_up: {
+			if (!m_hasParent)
+				return;
+
+			int l = m_curDir.length() - 1;
+			while (m_curDir.charAt(l) == '/')
+				l--;
+			l = m_curDir.lastIndexOf('/', l) + 1;
+			m_curDir = m_curDir.substring(0, l);
+			loadDir(true);
+			break;
+		}
 		}
 	}
 
 	@Override
 	public void onItemClick(AdapterView<?> a, View v, int position, long id) {
-		if (m_hasParent) {
-			if (position == 0) {
-				int l = m_curDir.length() - 1;
-				while (m_curDir.charAt(l) == '/')
-					l--;
-				l = m_curDir.lastIndexOf('/', l) + 1;
-				m_curDir = m_curDir.substring(0, l);
-				loadDir(true);
-				return;
-			}
-
-			position--;
-		}
-
 		if (!m_entries[position].isDir)
 			return;
 		
@@ -179,14 +178,11 @@ public class PlaylistActivity extends ListActivity
 
 	private class MyAdapter extends BaseAdapter
 			implements CompoundButton.OnCheckedChangeListener {
-		private boolean m_hasParent;
 		private RemotePlayer.DirEntry[] m_entries;
 
 		private BitSet m_selected;
 
-		public MyAdapter(boolean hasParent,
-				         RemotePlayer.DirEntry[] entries) {
-			m_hasParent = hasParent;
+		public MyAdapter(RemotePlayer.DirEntry[] entries) {
 			m_entries = entries;
 			m_selected = new BitSet(m_entries.length);
 		}
@@ -195,7 +191,7 @@ public class PlaylistActivity extends ListActivity
 
 		@Override
 		public int getCount() {
-			return m_entries.length + (m_hasParent ? 1 : 0);
+			return m_entries.length;
 		}
 
 		@Override
@@ -216,8 +212,6 @@ public class PlaylistActivity extends ListActivity
 			TextView tv = (TextView)vg.findViewById(R.id.row_tv);
 			CheckBox cb = (CheckBox)vg.findViewById(R.id.row_chbox);
 
-			if (m_hasParent)
-				position--;
 			tv.setText(position == -1 ? ".." : m_entries[position].name);
 
 			if (position >= 0 && m_selected.get(position))
