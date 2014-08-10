@@ -27,6 +27,8 @@
         </activity>
         <activity android:name=".PlaylistActivity"
 			android:label="Edit playlist" />
+        <activity android:name=".PortScannerActivity"
+			android:label="Find remote port" />
 
     </application>
 

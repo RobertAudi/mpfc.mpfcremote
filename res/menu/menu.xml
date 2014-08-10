@@ -43,6 +43,7 @@
   </item>
   <item android:title="Playlist" android:id="@+id/menu_playlist"></item>
   <item android:title="Volume" android:id="@+id/menu_volume"></item>
+  <item android:title="Find port" android:id="@+id/menu_scanports"></item>
   <item android:title="Settings" android:id="@+id/menu_settings"></item>
 
 </menu>

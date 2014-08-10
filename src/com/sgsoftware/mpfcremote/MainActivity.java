@@ -3,7 +3,6 @@ package com.sgsoftware.mpfcremote;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -137,6 +136,14 @@ public class MainActivity extends FragmentActivity
 			m_notificationsDisabled = true;
 			Intent intent = new Intent()
 				.setClass(this, com.sgsoftware.mpfcremote.PlaylistActivity.class);
+			this.startActivityForResult(intent, 0);
+			m_notificationsDisabled = false;
+			break;
+		}
+		case R.id.menu_scanports: {
+			m_notificationsDisabled = true;
+			Intent intent = new Intent()
+				.setClass(this, com.sgsoftware.mpfcremote.PortScannerActivity.class);
 			this.startActivityForResult(intent, 0);
 			m_notificationsDisabled = false;
 			break;
@@ -338,11 +345,8 @@ public class MainActivity extends FragmentActivity
 			m_player = null;
 		}
 
-		SharedPreferences prefs = getSharedPreferences("com.sgsoftware.mpfcremote_preferences", 0);
-		String remoteAddr = prefs.getString("RemoteAddr", "");
-		String remotePort = prefs.getString("RemotePort", "19792");
-
-		m_player = new RemotePlayer(remoteAddr, Integer.parseInt(remotePort), this, this,
+		RemoteAddr addr = new RemoteAddr(this);
+		m_player = new RemotePlayer(addr.getAddr(), addr.getPort(), this, this,
 				new RemotePlayer.IOnConnectedHandler() {
 					@Override 
 					public void onConnected() {

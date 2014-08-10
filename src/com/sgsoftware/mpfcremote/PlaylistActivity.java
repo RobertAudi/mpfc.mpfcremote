@@ -5,7 +5,6 @@ import java.util.Stack;
 
 import android.os.Bundle;
 import android.app.ListActivity;
-import android.content.SharedPreferences;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
@@ -64,11 +63,9 @@ public class PlaylistActivity extends ListActivity
 			m_player = null;
 		}
 
-		SharedPreferences prefs = getSharedPreferences("com.sgsoftware.mpfcremote_preferences", 0);
-		String remoteAddr = prefs.getString("RemoteAddr", "");
-		String remotePort = prefs.getString("RemotePort", "19792");
+		RemoteAddr addr = new RemoteAddr(this);
 
-		m_player = new RemotePlayer(remoteAddr, Integer.parseInt(remotePort), 
+		m_player = new RemotePlayer(addr.getAddr(), addr.getPort(),
 				null, null, null);
 		m_player.refresh(null);
 

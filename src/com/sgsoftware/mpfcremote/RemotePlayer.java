@@ -69,6 +69,11 @@ public class RemotePlayer {
 
 	private IRefreshHandler m_refreshHandler;
 	
+	public RemotePlayer(IRefreshHandler refreshHandler)
+	{
+		m_refreshHandler = refreshHandler;
+	}
+
 	public RemotePlayer(String addr, int port,
 						INotificationHandler notificationHandler,
 						IRefreshHandler refreshHandler,
@@ -79,14 +84,20 @@ public class RemotePlayer {
 		m_writeThread.start();
 	}
 
+	public void connect(String addr, int port, IOnConnectedHandler onConnectedHandler) {
+		m_writeThread = new WriteThread(addr, port, null, onConnectedHandler);
+		m_writeThread.start();
+	}
+
 	public boolean isConnected()
 	{
-		return m_writeThread.isConnected();
+		return m_writeThread != null && m_writeThread.isConnected();
 	}
 
 	public void destroy()
 	{
-		m_writeThread.interrupt();
+		if (m_writeThread != null)
+			m_writeThread.interrupt();
 	}
 
 	synchronized public CurSong getCurSong()
