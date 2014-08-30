@@ -44,6 +44,7 @@ public class PlaylistActivity extends ListActivity
 
 		((Button)findViewById(R.id.playlist_add)).setOnClickListener(this);
 		((Button)findViewById(R.id.playlist_clear)).setOnClickListener(this);
+		((Button)findViewById(R.id.playlist_close)).setOnClickListener(this);
 		((Button)findViewById(R.id.playlist_up)).setOnClickListener(this);
 		getListView().setOnItemClickListener(this);
 
@@ -97,6 +98,10 @@ public class PlaylistActivity extends ListActivity
 		switch (target.getId()) {
 		case R.id.playlist_clear: {
 			m_player.clear();
+			break;
+		}
+		case R.id.playlist_close: {
+			finish();
 			break;
 		}
 		case R.id.playlist_add: {

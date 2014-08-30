@@ -4,6 +4,25 @@
 	android:layout_width="fill_parent"
 	android:layout_height="wrap_content">
 
+<LinearLayout 
+	android:orientation="horizontal"
+	android:layout_width="fill_parent"
+	android:layout_height="wrap_content">
+	
+<Button android:id="@+id/playlist_up" android:layout_width="wrap_content"
+	android:layout_height="wrap_content" android:text="Up" />
+	
+<Button android:id="@+id/playlist_close" android:layout_width="wrap_content"
+	android:layout_height="wrap_content" android:text="Close" />
+	
+<Button android:id="@+id/playlist_add" android:layout_width="wrap_content"
+	android:layout_height="wrap_content" android:text="Add selected" />
+
+<Button android:id="@+id/playlist_clear" android:layout_width="wrap_content"
+	android:layout_height="wrap_content" android:text="Clear" />
+	
+</LinearLayout>
+
 <TextView android:id="@+id/playlist_curdir" android:layout_width="wrap_content"
 	android:layout_height="wrap_content"
 	/>
@@ -15,22 +34,6 @@
 	android:stackFromBottom="true"
 	android:fastScrollEnabled="true"
 	android:transcriptMode="normal"/>
-
-<LinearLayout 
-	android:orientation="horizontal"
-	android:layout_width="fill_parent"
-	android:layout_height="wrap_content">
-	
-<Button android:id="@+id/playlist_add" android:layout_width="wrap_content"
-	android:layout_height="wrap_content" android:text="Add selected" />
-
-<Button android:id="@+id/playlist_clear" android:layout_width="wrap_content"
-	android:layout_height="wrap_content" android:text="Clear" />
-	
-<Button android:id="@+id/playlist_up" android:layout_width="wrap_content"
-	android:layout_height="wrap_content" android:text="Up" />
-	
-</LinearLayout>
 
 </LinearLayout>
 
